@@ -49,7 +49,7 @@ function BrowsePage() {
   const [q, setQ] = useState(sp.q ?? "");
 
   const setFilter = (patch: Record<string, unknown>) =>
-    navigate({ search: (prev) => ({ ...prev, ...patch }) as never });
+    navigate({ search: (prev: Record<string, unknown>) => ({ ...prev, ...patch }) as never });
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],

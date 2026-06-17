@@ -9,38 +9,163 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RequirementsRouteImport } from './routes/requirements'
+import { Route as RegisterVendorRouteImport } from './routes/register-vendor'
+import { Route as BrowseRouteImport } from './routes/browse'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VendorSlugRouteImport } from './routes/vendor.$slug'
+import { Route as AuthenticatedPostRequirementRouteImport } from './routes/_authenticated/post-requirement'
 
+const RequirementsRoute = RequirementsRouteImport.update({
+  id: '/requirements',
+  path: '/requirements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterVendorRoute = RegisterVendorRouteImport.update({
+  id: '/register-vendor',
+  path: '/register-vendor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrowseRoute = BrowseRouteImport.update({
+  id: '/browse',
+  path: '/browse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VendorSlugRoute = VendorSlugRouteImport.update({
+  id: '/vendor/$slug',
+  path: '/vendor/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedPostRequirementRoute =
+  AuthenticatedPostRequirementRouteImport.update({
+    id: '/post-requirement',
+    path: '/post-requirement',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/browse': typeof BrowseRoute
+  '/register-vendor': typeof RegisterVendorRoute
+  '/requirements': typeof RequirementsRoute
+  '/post-requirement': typeof AuthenticatedPostRequirementRoute
+  '/vendor/$slug': typeof VendorSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/browse': typeof BrowseRoute
+  '/register-vendor': typeof RegisterVendorRoute
+  '/requirements': typeof RequirementsRoute
+  '/post-requirement': typeof AuthenticatedPostRequirementRoute
+  '/vendor/$slug': typeof VendorSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/browse': typeof BrowseRoute
+  '/register-vendor': typeof RegisterVendorRoute
+  '/requirements': typeof RequirementsRoute
+  '/_authenticated/post-requirement': typeof AuthenticatedPostRequirementRoute
+  '/vendor/$slug': typeof VendorSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/browse'
+    | '/register-vendor'
+    | '/requirements'
+    | '/post-requirement'
+    | '/vendor/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/browse'
+    | '/register-vendor'
+    | '/requirements'
+    | '/post-requirement'
+    | '/vendor/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/browse'
+    | '/register-vendor'
+    | '/requirements'
+    | '/_authenticated/post-requirement'
+    | '/vendor/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  BrowseRoute: typeof BrowseRoute
+  RegisterVendorRoute: typeof RegisterVendorRoute
+  RequirementsRoute: typeof RequirementsRoute
+  VendorSlugRoute: typeof VendorSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/requirements': {
+      id: '/requirements'
+      path: '/requirements'
+      fullPath: '/requirements'
+      preLoaderRoute: typeof RequirementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register-vendor': {
+      id: '/register-vendor'
+      path: '/register-vendor'
+      fullPath: '/register-vendor'
+      preLoaderRoute: typeof RegisterVendorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/browse': {
+      id: '/browse'
+      path: '/browse'
+      fullPath: '/browse'
+      preLoaderRoute: typeof BrowseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +173,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vendor/$slug': {
+      id: '/vendor/$slug'
+      path: '/vendor/$slug'
+      fullPath: '/vendor/$slug'
+      preLoaderRoute: typeof VendorSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/post-requirement': {
+      id: '/_authenticated/post-requirement'
+      path: '/post-requirement'
+      fullPath: '/post-requirement'
+      preLoaderRoute: typeof AuthenticatedPostRequirementRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedPostRequirementRoute: typeof AuthenticatedPostRequirementRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedPostRequirementRoute: AuthenticatedPostRequirementRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  BrowseRoute: BrowseRoute,
+  RegisterVendorRoute: RegisterVendorRoute,
+  RequirementsRoute: RequirementsRoute,
+  VendorSlugRoute: VendorSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
