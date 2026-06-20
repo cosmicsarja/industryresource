@@ -95,6 +95,9 @@ export function Navbar() {
                 {l.label}
               </Link>
             ))}
+            <Link to="/machines" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">Machines for Sale</Link>
+            <Link to="/materials" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">Materials & Spares</Link>
+
             <div className="flex items-center gap-2 pt-2">
               <button onClick={() => setLang(lang === "en" ? "kn" : "en")} className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold">
                 {lang === "en" ? "ಕನ್ನಡ" : "EN"}
