@@ -14,8 +14,9 @@ export interface MaterialCardData {
   unit: string;
   price_per_unit: number | null;
   stock_quantity: number | null;
-  is_in_stock: boolean;
-  allow_online_payment: boolean;
+  is_in_stock: boolean | null;
+  allow_online_payment: boolean | null;
+
   min_order_quantity: number | null;
   zone: string | null;
   primary_photo?: string | null;
