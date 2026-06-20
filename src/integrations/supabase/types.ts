@@ -234,6 +234,455 @@ export type Database = {
           },
         ]
       }
+      machine_enquiries: {
+        Row: {
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          created_at: string
+          id: string
+          machine_id: string
+          message: string | null
+          offered_price: number | null
+          status: string | null
+        }
+        Insert: {
+          buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          id?: string
+          machine_id: string
+          message?: string | null
+          offered_price?: number | null
+          status?: string | null
+        }
+        Update: {
+          buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          id?: string
+          machine_id?: string
+          message?: string | null
+          offered_price?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "machine_enquiries_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "machine_enquiries_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machine_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      machine_listings: {
+        Row: {
+          asking_price: number | null
+          brand: string | null
+          category_id: string | null
+          condition: string
+          created_at: string
+          currency: string | null
+          description: string | null
+          description_kn: string | null
+          enquiry_count: number | null
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_sold: boolean | null
+          machine_type: string | null
+          manufacture_year: number | null
+          model: string | null
+          price_type: string | null
+          quantity_available: number | null
+          slug: string
+          specifications: Json | null
+          title: string
+          updated_at: string
+          vendor_id: string
+          view_count: number | null
+          zone: string | null
+        }
+        Insert: {
+          asking_price?: number | null
+          brand?: string | null
+          category_id?: string | null
+          condition: string
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          description_kn?: string | null
+          enquiry_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_sold?: boolean | null
+          machine_type?: string | null
+          manufacture_year?: number | null
+          model?: string | null
+          price_type?: string | null
+          quantity_available?: number | null
+          slug: string
+          specifications?: Json | null
+          title: string
+          updated_at?: string
+          vendor_id: string
+          view_count?: number | null
+          zone?: string | null
+        }
+        Update: {
+          asking_price?: number | null
+          brand?: string | null
+          category_id?: string | null
+          condition?: string
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          description_kn?: string | null
+          enquiry_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_sold?: boolean | null
+          machine_type?: string | null
+          manufacture_year?: number | null
+          model?: string | null
+          price_type?: string | null
+          quantity_available?: number | null
+          slug?: string
+          specifications?: Json | null
+          title?: string
+          updated_at?: string
+          vendor_id?: string
+          view_count?: number | null
+          zone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "machine_listings_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "machine_listings_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      machine_photos: {
+        Row: {
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          machine_id: string
+          photo_url: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          machine_id: string
+          photo_url: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          machine_id?: string
+          photo_url?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "machine_photos_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machine_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_enquiries: {
+        Row: {
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          created_at: string
+          id: string
+          material_id: string
+          message: string | null
+          requested_quantity: number | null
+          status: string | null
+        }
+        Insert: {
+          buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          id?: string
+          material_id: string
+          message?: string | null
+          requested_quantity?: number | null
+          status?: string | null
+        }
+        Update: {
+          buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          id?: string
+          material_id?: string
+          message?: string | null
+          requested_quantity?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_enquiries_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_enquiries_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "material_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_listings: {
+        Row: {
+          allow_online_payment: boolean | null
+          category_id: string | null
+          created_at: string
+          currency: string | null
+          description: string | null
+          description_kn: string | null
+          enquiry_count: number | null
+          grade_or_spec: string | null
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_in_stock: boolean | null
+          material_type: string | null
+          min_order_quantity: number | null
+          order_count: number | null
+          price_per_unit: number | null
+          slug: string
+          specifications: Json | null
+          stock_quantity: number | null
+          title: string
+          unit: string
+          updated_at: string
+          vendor_id: string
+          view_count: number | null
+          zone: string | null
+        }
+        Insert: {
+          allow_online_payment?: boolean | null
+          category_id?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          description_kn?: string | null
+          enquiry_count?: number | null
+          grade_or_spec?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_in_stock?: boolean | null
+          material_type?: string | null
+          min_order_quantity?: number | null
+          order_count?: number | null
+          price_per_unit?: number | null
+          slug: string
+          specifications?: Json | null
+          stock_quantity?: number | null
+          title: string
+          unit: string
+          updated_at?: string
+          vendor_id: string
+          view_count?: number | null
+          zone?: string | null
+        }
+        Update: {
+          allow_online_payment?: boolean | null
+          category_id?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          description_kn?: string | null
+          enquiry_count?: number | null
+          grade_or_spec?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_in_stock?: boolean | null
+          material_type?: string | null
+          min_order_quantity?: number | null
+          order_count?: number | null
+          price_per_unit?: number | null
+          slug?: string
+          specifications?: Json | null
+          stock_quantity?: number | null
+          title?: string
+          unit?: string
+          updated_at?: string
+          vendor_id?: string
+          view_count?: number | null
+          zone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_listings_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_listings_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_orders: {
+        Row: {
+          buyer_id: string
+          buyer_phone: string | null
+          created_at: string
+          delivery_address: string | null
+          fulfillment_status: string | null
+          id: string
+          material_id: string
+          payment_status: string | null
+          platform_commission: number | null
+          quantity: number
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          total_amount: number
+          unit_price: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          buyer_id: string
+          buyer_phone?: string | null
+          created_at?: string
+          delivery_address?: string | null
+          fulfillment_status?: string | null
+          id?: string
+          material_id: string
+          payment_status?: string | null
+          platform_commission?: number | null
+          quantity: number
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          total_amount: number
+          unit_price: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          buyer_id?: string
+          buyer_phone?: string | null
+          created_at?: string
+          delivery_address?: string | null
+          fulfillment_status?: string | null
+          id?: string
+          material_id?: string
+          payment_status?: string | null
+          platform_commission?: number | null
+          quantity?: number
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          total_amount?: number
+          unit_price?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_orders_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_orders_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "material_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_orders_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_photos: {
+        Row: {
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          material_id: string
+          photo_url: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          material_id: string
+          photo_url: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          material_id?: string
+          photo_url?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_photos_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "material_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number | null
@@ -487,6 +936,38 @@ export type Database = {
             columns: ["vendor_id"]
             isOneToOne: false
             referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_listings: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          id: string
+          listing_id: string
+          listing_type: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          id?: string
+          listing_id: string
+          listing_type: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          listing_id?: string
+          listing_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_listings_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -748,7 +1229,101 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_machine_view: {
+        Args: { machine_uuid: string }
+        Returns: undefined
+      }
+      increment_material_view: {
+        Args: { material_uuid: string }
+        Returns: undefined
+      }
       promote_to_admin: { Args: { _email: string }; Returns: string }
+      search_machines: {
+        Args: {
+          filter_category?: string
+          filter_condition?: string
+          filter_zone?: string
+          max_price?: number
+          min_price?: number
+          search_query?: string
+          sort_by?: string
+        }
+        Returns: {
+          asking_price: number | null
+          brand: string | null
+          category_id: string | null
+          condition: string
+          created_at: string
+          currency: string | null
+          description: string | null
+          description_kn: string | null
+          enquiry_count: number | null
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_sold: boolean | null
+          machine_type: string | null
+          manufacture_year: number | null
+          model: string | null
+          price_type: string | null
+          quantity_available: number | null
+          slug: string
+          specifications: Json | null
+          title: string
+          updated_at: string
+          vendor_id: string
+          view_count: number | null
+          zone: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "machine_listings"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      search_materials: {
+        Args: {
+          filter_category?: string
+          filter_zone?: string
+          in_stock_only?: boolean
+          search_query?: string
+          sort_by?: string
+        }
+        Returns: {
+          allow_online_payment: boolean | null
+          category_id: string | null
+          created_at: string
+          currency: string | null
+          description: string | null
+          description_kn: string | null
+          enquiry_count: number | null
+          grade_or_spec: string | null
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_in_stock: boolean | null
+          material_type: string | null
+          min_order_quantity: number | null
+          order_count: number | null
+          price_per_unit: number | null
+          slug: string
+          specifications: Json | null
+          stock_quantity: number | null
+          title: string
+          unit: string
+          updated_at: string
+          vendor_id: string
+          view_count: number | null
+          zone: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "material_listings"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       ad_placement:
