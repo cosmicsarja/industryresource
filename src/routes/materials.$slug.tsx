@@ -104,7 +104,7 @@ function MaterialDetail() {
           <div className="space-y-5">
             <div>
               <div className="mb-2 flex flex-wrap items-center gap-2">
-                <StockStatusBadge inStock={m.is_in_stock} qty={m.stock_quantity ? Number(m.stock_quantity) : null} />
+                <StockStatusBadge inStock={!!m.is_in_stock} qty={m.stock_quantity ? Number(m.stock_quantity) : null} />
                 <ZoneBadge zone={m.zone} />
                 {m.grade_or_spec && <span className="rounded-md bg-muted px-2 py-0.5 text-xs">{m.grade_or_spec}</span>}
               </div>

@@ -48,7 +48,7 @@ export function MaterialCard({ m }: { m: MaterialCardData }) {
           <div className="font-display text-base font-bold text-primary">
             {m.price_per_unit ? `${formatINR(m.price_per_unit)} / ${m.unit}` : "On Enquiry"}
           </div>
-          <StockStatusBadge inStock={m.is_in_stock} qty={m.stock_quantity ? Number(m.stock_quantity) : null} />
+          <StockStatusBadge inStock={!!m.is_in_stock} qty={m.stock_quantity ? Number(m.stock_quantity) : null} />
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <ZoneBadge zone={m.zone} />
