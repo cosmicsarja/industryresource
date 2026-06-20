@@ -239,7 +239,27 @@ function HomePage() {
         </div>
       </section>
 
+      {/* MARKETPLACE PREVIEW */}
+      <section className="container mx-auto px-4 py-16">
+        <SectionHeading title="Marketplace" subtitle="Buy and sell machines, materials, and spare parts" />
+        <div className="grid gap-6 md:grid-cols-2">
+          <Link to="/machines" className="group rounded-xl border border-border bg-card p-6 transition hover:border-primary/40 hover:shadow-lg">
+            <div className="mb-2 inline-grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary"><Hammer className="h-5 w-5" /></div>
+            <h3 className="font-display text-xl font-bold">Machines for Sale</h3>
+            <p className="mt-1 text-sm text-muted-foreground">New and used industrial machines from verified Belagavi sellers. Direct contact, no middlemen.</p>
+            <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">Browse machines <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></div>
+          </Link>
+          <Link to="/materials" className="group rounded-xl border border-border bg-card p-6 transition hover:border-accent/40 hover:shadow-lg">
+            <div className="mb-2 inline-grid h-10 w-10 place-items-center rounded-md bg-accent/10 text-accent"><CheckCircle2 className="h-5 w-5" /></div>
+            <h3 className="font-display text-xl font-bold">Materials & Spares</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Raw materials, bearings, hoses, casting scrap. Enquire directly or buy online.</p>
+            <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-accent">Browse materials <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></div>
+          </Link>
+        </div>
+      </section>
+
       {/* ZONES */}
+
       <section className="container mx-auto px-4 py-16">
         <SectionHeading title={t("industrialZones")} subtitle="Explore vendors by Belagavi's industrial hubs" />
         <div className="grid gap-3 md:grid-cols-3">
