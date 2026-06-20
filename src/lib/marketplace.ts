@@ -24,12 +24,12 @@ export function useMachines(f: MachineFilters) {
     queryKey: ["machines", f],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("search_machines", {
-        search_query: f.q || null,
-        filter_category: f.category || null,
-        filter_condition: f.condition || null,
-        filter_zone: f.zone || null,
-        min_price: f.minPrice ?? null,
-        max_price: f.maxPrice ?? null,
+        search_query: f.q || undefined,
+        filter_category: f.category || undefined,
+        filter_condition: f.condition || undefined,
+        filter_zone: f.zone || undefined,
+        min_price: f.minPrice ?? undefined,
+        max_price: f.maxPrice ?? undefined,
         sort_by: f.sort || "newest",
       });
       if (error) throw error;
@@ -43,10 +43,10 @@ export function useMaterials(f: MaterialFilters) {
     queryKey: ["materials", f],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("search_materials", {
-        search_query: f.q || null,
-        filter_category: f.category || null,
-        filter_zone: f.zone || null,
-        in_stock_only: f.inStockOnly ?? null,
+        search_query: f.q || undefined,
+        filter_category: f.category || undefined,
+        filter_zone: f.zone || undefined,
+        in_stock_only: f.inStockOnly ?? undefined,
         sort_by: f.sort || "newest",
       });
       if (error) throw error;
@@ -54,6 +54,7 @@ export function useMaterials(f: MaterialFilters) {
     },
   });
 }
+
 
 export function useMachine(slug: string) {
   return useQuery({
