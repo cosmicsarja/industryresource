@@ -1,9 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { Factory, Mail, MapPin } from "lucide-react";
+import { FooterBannerAd } from "@/components/ad-slot";
 
 export function Footer() {
   return (
     <footer className="border-t border-border bg-card mt-16">
+      {/* ── Bottom-of-page Ad Banner ───────────────────────────────────── */}
+      <div className="border-b border-border/50 bg-background px-4 py-4">
+        <FooterBannerAd />
+      </div>
       <div className="container mx-auto grid gap-8 px-4 py-12 md:grid-cols-4">
         <div className="space-y-3">
           <div className="flex items-center gap-2">

@@ -27,10 +27,20 @@ function AuthPage() {
   const onLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPwd });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: loginEmail,
+      password: loginPwd,
+    });
     setBusy(false);
-    if (error) toast.error(error.message);
-    else { toast.success("Welcome back!"); navigate({ to: "/" }); }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Welcome back!");
+    // Check for redirect param, otherwise go home
+    const params = new URLSearchParams(window.location.search);
+    const redirectTo = params.get("redirect");
+    navigate({ to: (redirectTo as never) ?? "/" });
   };
 
   // Signup

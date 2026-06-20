@@ -67,8 +67,9 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {hasRole("vendor") && (
-                  <DropdownMenuItem onClick={() => navigate({ to: "/browse" })}>Vendor area</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate({ to: "/dashboard" })}>Vendor Dashboard</DropdownMenuItem>
                 )}
+                <DropdownMenuItem onClick={() => navigate({ to: "/customer-dashboard" })}>My Dashboard</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate({ to: "/post-requirement" })}>{t("postRequirement")}</DropdownMenuItem>
                 <DropdownMenuItem onClick={async () => { await signOut(); navigate({ to: "/" }); }}>
                   {t("logout")}
@@ -98,6 +99,11 @@ export function Navbar() {
             <Link to="/machines" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">Machines for Sale</Link>
             <Link to="/materials" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">Materials & Spares</Link>
 
+            {isAuthenticated && (
+              <Link to="/dashboard" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+                Vendor Dashboard
+              </Link>
+            )}
             <div className="flex items-center gap-2 pt-2">
               <button onClick={() => setLang(lang === "en" ? "kn" : "en")} className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold">
                 {lang === "en" ? "ಕನ್ನಡ" : "EN"}

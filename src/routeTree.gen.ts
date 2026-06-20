@@ -18,9 +18,12 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendorSlugRouteImport } from './routes/vendor.$slug'
-import { Route as MaterialsSlugRouteImport } from './routes/materials.$slug'
-import { Route as MachinesSlugRouteImport } from './routes/machines.$slug'
+import { Route as MaterialsSlugRouteImport } from './routes/materials_.$slug'
+import { Route as MachinesSlugRouteImport } from './routes/machines_.$slug'
 import { Route as AuthenticatedPostRequirementRouteImport } from './routes/_authenticated/post-requirement'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCustomerDashboardRouteImport } from './routes/_authenticated/customer-dashboard'
+import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders.$id'
 import { Route as AuthenticatedMaterialsNewRouteImport } from './routes/_authenticated/materials.new'
 import { Route as AuthenticatedMachinesNewRouteImport } from './routes/_authenticated/machines.new'
 
@@ -69,14 +72,14 @@ const VendorSlugRoute = VendorSlugRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const MaterialsSlugRoute = MaterialsSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => MaterialsRoute,
+  id: '/materials_/$slug',
+  path: '/materials/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const MachinesSlugRoute = MachinesSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => MachinesRoute,
+  id: '/machines_/$slug',
+  path: '/machines/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPostRequirementRoute =
   AuthenticatedPostRequirementRouteImport.update({
@@ -84,6 +87,22 @@ const AuthenticatedPostRequirementRoute =
     path: '/post-requirement',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCustomerDashboardRoute =
+  AuthenticatedCustomerDashboardRouteImport.update({
+    id: '/customer-dashboard',
+    path: '/customer-dashboard',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOrdersIdRoute = AuthenticatedOrdersIdRouteImport.update({
+  id: '/orders/$id',
+  path: '/orders/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMaterialsNewRoute =
   AuthenticatedMaterialsNewRouteImport.update({
     id: '/materials/new',
@@ -101,31 +120,37 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
-  '/machines': typeof MachinesRouteWithChildren
-  '/materials': typeof MaterialsRouteWithChildren
+  '/machines': typeof MachinesRoute
+  '/materials': typeof MaterialsRoute
   '/register-vendor': typeof RegisterVendorRoute
   '/requirements': typeof RequirementsRoute
+  '/customer-dashboard': typeof AuthenticatedCustomerDashboardRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/post-requirement': typeof AuthenticatedPostRequirementRoute
   '/machines/$slug': typeof MachinesSlugRoute
   '/materials/$slug': typeof MaterialsSlugRoute
   '/vendor/$slug': typeof VendorSlugRoute
   '/machines/new': typeof AuthenticatedMachinesNewRoute
   '/materials/new': typeof AuthenticatedMaterialsNewRoute
+  '/orders/$id': typeof AuthenticatedOrdersIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
-  '/machines': typeof MachinesRouteWithChildren
-  '/materials': typeof MaterialsRouteWithChildren
+  '/machines': typeof MachinesRoute
+  '/materials': typeof MaterialsRoute
   '/register-vendor': typeof RegisterVendorRoute
   '/requirements': typeof RequirementsRoute
+  '/customer-dashboard': typeof AuthenticatedCustomerDashboardRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
   '/post-requirement': typeof AuthenticatedPostRequirementRoute
   '/machines/$slug': typeof MachinesSlugRoute
   '/materials/$slug': typeof MaterialsSlugRoute
   '/vendor/$slug': typeof VendorSlugRoute
   '/machines/new': typeof AuthenticatedMachinesNewRoute
   '/materials/new': typeof AuthenticatedMaterialsNewRoute
+  '/orders/$id': typeof AuthenticatedOrdersIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -133,16 +158,19 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
-  '/machines': typeof MachinesRouteWithChildren
-  '/materials': typeof MaterialsRouteWithChildren
+  '/machines': typeof MachinesRoute
+  '/materials': typeof MaterialsRoute
   '/register-vendor': typeof RegisterVendorRoute
   '/requirements': typeof RequirementsRoute
+  '/_authenticated/customer-dashboard': typeof AuthenticatedCustomerDashboardRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/post-requirement': typeof AuthenticatedPostRequirementRoute
-  '/machines/$slug': typeof MachinesSlugRoute
-  '/materials/$slug': typeof MaterialsSlugRoute
+  '/machines_/$slug': typeof MachinesSlugRoute
+  '/materials_/$slug': typeof MaterialsSlugRoute
   '/vendor/$slug': typeof VendorSlugRoute
   '/_authenticated/machines/new': typeof AuthenticatedMachinesNewRoute
   '/_authenticated/materials/new': typeof AuthenticatedMaterialsNewRoute
+  '/_authenticated/orders/$id': typeof AuthenticatedOrdersIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -154,12 +182,15 @@ export interface FileRouteTypes {
     | '/materials'
     | '/register-vendor'
     | '/requirements'
+    | '/customer-dashboard'
+    | '/dashboard'
     | '/post-requirement'
     | '/machines/$slug'
     | '/materials/$slug'
     | '/vendor/$slug'
     | '/machines/new'
     | '/materials/new'
+    | '/orders/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -169,12 +200,15 @@ export interface FileRouteTypes {
     | '/materials'
     | '/register-vendor'
     | '/requirements'
+    | '/customer-dashboard'
+    | '/dashboard'
     | '/post-requirement'
     | '/machines/$slug'
     | '/materials/$slug'
     | '/vendor/$slug'
     | '/machines/new'
     | '/materials/new'
+    | '/orders/$id'
   id:
     | '__root__'
     | '/'
@@ -185,12 +219,15 @@ export interface FileRouteTypes {
     | '/materials'
     | '/register-vendor'
     | '/requirements'
+    | '/_authenticated/customer-dashboard'
+    | '/_authenticated/dashboard'
     | '/_authenticated/post-requirement'
-    | '/machines/$slug'
-    | '/materials/$slug'
+    | '/machines_/$slug'
+    | '/materials_/$slug'
     | '/vendor/$slug'
     | '/_authenticated/machines/new'
     | '/_authenticated/materials/new'
+    | '/_authenticated/orders/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -198,10 +235,12 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   BrowseRoute: typeof BrowseRoute
-  MachinesRoute: typeof MachinesRouteWithChildren
-  MaterialsRoute: typeof MaterialsRouteWithChildren
+  MachinesRoute: typeof MachinesRoute
+  MaterialsRoute: typeof MaterialsRoute
   RegisterVendorRoute: typeof RegisterVendorRoute
   RequirementsRoute: typeof RequirementsRoute
+  MachinesSlugRoute: typeof MachinesSlugRoute
+  MaterialsSlugRoute: typeof MaterialsSlugRoute
   VendorSlugRoute: typeof VendorSlugRoute
 }
 
@@ -270,25 +309,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VendorSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/materials/$slug': {
-      id: '/materials/$slug'
-      path: '/$slug'
+    '/materials_/$slug': {
+      id: '/materials_/$slug'
+      path: '/materials/$slug'
       fullPath: '/materials/$slug'
       preLoaderRoute: typeof MaterialsSlugRouteImport
-      parentRoute: typeof MaterialsRoute
+      parentRoute: typeof rootRouteImport
     }
-    '/machines/$slug': {
-      id: '/machines/$slug'
-      path: '/$slug'
+    '/machines_/$slug': {
+      id: '/machines_/$slug'
+      path: '/machines/$slug'
       fullPath: '/machines/$slug'
       preLoaderRoute: typeof MachinesSlugRouteImport
-      parentRoute: typeof MachinesRoute
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/post-requirement': {
       id: '/_authenticated/post-requirement'
       path: '/post-requirement'
       fullPath: '/post-requirement'
       preLoaderRoute: typeof AuthenticatedPostRequirementRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/customer-dashboard': {
+      id: '/_authenticated/customer-dashboard'
+      path: '/customer-dashboard'
+      fullPath: '/customer-dashboard'
+      preLoaderRoute: typeof AuthenticatedCustomerDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/orders/$id': {
+      id: '/_authenticated/orders/$id'
+      path: '/orders/$id'
+      fullPath: '/orders/$id'
+      preLoaderRoute: typeof AuthenticatedOrdersIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/materials/new': {
@@ -309,55 +369,49 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCustomerDashboardRoute: typeof AuthenticatedCustomerDashboardRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedPostRequirementRoute: typeof AuthenticatedPostRequirementRoute
   AuthenticatedMachinesNewRoute: typeof AuthenticatedMachinesNewRoute
   AuthenticatedMaterialsNewRoute: typeof AuthenticatedMaterialsNewRoute
+  AuthenticatedOrdersIdRoute: typeof AuthenticatedOrdersIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCustomerDashboardRoute: AuthenticatedCustomerDashboardRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedPostRequirementRoute: AuthenticatedPostRequirementRoute,
   AuthenticatedMachinesNewRoute: AuthenticatedMachinesNewRoute,
   AuthenticatedMaterialsNewRoute: AuthenticatedMaterialsNewRoute,
+  AuthenticatedOrdersIdRoute: AuthenticatedOrdersIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
-
-interface MachinesRouteChildren {
-  MachinesSlugRoute: typeof MachinesSlugRoute
-}
-
-const MachinesRouteChildren: MachinesRouteChildren = {
-  MachinesSlugRoute: MachinesSlugRoute,
-}
-
-const MachinesRouteWithChildren = MachinesRoute._addFileChildren(
-  MachinesRouteChildren,
-)
-
-interface MaterialsRouteChildren {
-  MaterialsSlugRoute: typeof MaterialsSlugRoute
-}
-
-const MaterialsRouteChildren: MaterialsRouteChildren = {
-  MaterialsSlugRoute: MaterialsSlugRoute,
-}
-
-const MaterialsRouteWithChildren = MaterialsRoute._addFileChildren(
-  MaterialsRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   BrowseRoute: BrowseRoute,
-  MachinesRoute: MachinesRouteWithChildren,
-  MaterialsRoute: MaterialsRouteWithChildren,
+  MachinesRoute: MachinesRoute,
+  MaterialsRoute: MaterialsRoute,
   RegisterVendorRoute: RegisterVendorRoute,
   RequirementsRoute: RequirementsRoute,
+  MachinesSlugRoute: MachinesSlugRoute,
+  MaterialsSlugRoute: MaterialsSlugRoute,
   VendorSlugRoute: VendorSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

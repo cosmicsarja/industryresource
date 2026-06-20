@@ -72,6 +72,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" },
+      // Google AdSense — replace ca-pub-XXXXXXXXXXXXXXXX with your real publisher ID
+      { rel: "preconnect", href: "https://pagead2.googlesyndication.com" },
+    ],
+    scripts: [
+      {
+        src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX",
+        async: true,
+        crossOrigin: "anonymous" as const,
+      },
     ],
   }),
   shellComponent: RootShell,
