@@ -37,12 +37,20 @@ export function Navbar() {
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
-          {links.map((l) => (
-            <Button key={l.to} asChild variant="ghost" size="sm">
-              <Link to={l.to}>{l.label}</Link>
-            </Button>
-          ))}
+          <Button asChild variant="ghost" size="sm"><Link to="/browse">{t("browse")}</Link></Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">Marketplace</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => navigate({ to: "/machines" })}>Machines for Sale</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate({ to: "/materials" })}>Materials & Spares</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button asChild variant="ghost" size="sm"><Link to="/requirements">{t("requirements")}</Link></Button>
+          <Button asChild variant="ghost" size="sm"><Link to="/register-vendor">{t("listBusiness")}</Link></Button>
         </nav>
+
 
         <div className="hidden items-center gap-2 md:flex">
           <button

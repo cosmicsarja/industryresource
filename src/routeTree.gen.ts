@@ -21,6 +21,8 @@ import { Route as VendorSlugRouteImport } from './routes/vendor.$slug'
 import { Route as MaterialsSlugRouteImport } from './routes/materials.$slug'
 import { Route as MachinesSlugRouteImport } from './routes/machines.$slug'
 import { Route as AuthenticatedPostRequirementRouteImport } from './routes/_authenticated/post-requirement'
+import { Route as AuthenticatedMaterialsNewRouteImport } from './routes/_authenticated/materials.new'
+import { Route as AuthenticatedMachinesNewRouteImport } from './routes/_authenticated/machines.new'
 
 const RequirementsRoute = RequirementsRouteImport.update({
   id: '/requirements',
@@ -82,6 +84,18 @@ const AuthenticatedPostRequirementRoute =
     path: '/post-requirement',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMaterialsNewRoute =
+  AuthenticatedMaterialsNewRouteImport.update({
+    id: '/materials/new',
+    path: '/materials/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMachinesNewRoute =
+  AuthenticatedMachinesNewRouteImport.update({
+    id: '/machines/new',
+    path: '/machines/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -95,6 +109,8 @@ export interface FileRoutesByFullPath {
   '/machines/$slug': typeof MachinesSlugRoute
   '/materials/$slug': typeof MaterialsSlugRoute
   '/vendor/$slug': typeof VendorSlugRoute
+  '/machines/new': typeof AuthenticatedMachinesNewRoute
+  '/materials/new': typeof AuthenticatedMaterialsNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -108,6 +124,8 @@ export interface FileRoutesByTo {
   '/machines/$slug': typeof MachinesSlugRoute
   '/materials/$slug': typeof MaterialsSlugRoute
   '/vendor/$slug': typeof VendorSlugRoute
+  '/machines/new': typeof AuthenticatedMachinesNewRoute
+  '/materials/new': typeof AuthenticatedMaterialsNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -123,6 +141,8 @@ export interface FileRoutesById {
   '/machines/$slug': typeof MachinesSlugRoute
   '/materials/$slug': typeof MaterialsSlugRoute
   '/vendor/$slug': typeof VendorSlugRoute
+  '/_authenticated/machines/new': typeof AuthenticatedMachinesNewRoute
+  '/_authenticated/materials/new': typeof AuthenticatedMaterialsNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,6 +158,8 @@ export interface FileRouteTypes {
     | '/machines/$slug'
     | '/materials/$slug'
     | '/vendor/$slug'
+    | '/machines/new'
+    | '/materials/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -151,6 +173,8 @@ export interface FileRouteTypes {
     | '/machines/$slug'
     | '/materials/$slug'
     | '/vendor/$slug'
+    | '/machines/new'
+    | '/materials/new'
   id:
     | '__root__'
     | '/'
@@ -165,6 +189,8 @@ export interface FileRouteTypes {
     | '/machines/$slug'
     | '/materials/$slug'
     | '/vendor/$slug'
+    | '/_authenticated/machines/new'
+    | '/_authenticated/materials/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -265,15 +291,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPostRequirementRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/materials/new': {
+      id: '/_authenticated/materials/new'
+      path: '/materials/new'
+      fullPath: '/materials/new'
+      preLoaderRoute: typeof AuthenticatedMaterialsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/machines/new': {
+      id: '/_authenticated/machines/new'
+      path: '/machines/new'
+      fullPath: '/machines/new'
+      preLoaderRoute: typeof AuthenticatedMachinesNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedPostRequirementRoute: typeof AuthenticatedPostRequirementRoute
+  AuthenticatedMachinesNewRoute: typeof AuthenticatedMachinesNewRoute
+  AuthenticatedMaterialsNewRoute: typeof AuthenticatedMaterialsNewRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPostRequirementRoute: AuthenticatedPostRequirementRoute,
+  AuthenticatedMachinesNewRoute: AuthenticatedMachinesNewRoute,
+  AuthenticatedMaterialsNewRoute: AuthenticatedMaterialsNewRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
