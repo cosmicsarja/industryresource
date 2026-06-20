@@ -13,10 +13,11 @@ export interface MachineCardData {
   model: string | null;
   condition: string;
   asking_price: number | null;
-  price_type: string;
+  price_type: string | null;
   zone: string | null;
   primary_photo?: string | null;
 }
+
 
 export function MachineCard({ m }: { m: MachineCardData }) {
   return (
