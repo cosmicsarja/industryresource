@@ -45,6 +45,7 @@ export function Navbar() {
             <DropdownMenuContent align="start">
               <DropdownMenuItem onClick={() => navigate({ to: "/machines" })}>Machines for Sale</DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate({ to: "/materials" })}>Materials & Spares</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate({ to: "/listings" })}>📋 Classifieds</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button asChild variant="ghost" size="sm"><Link to="/requirements">{t("requirements")}</Link></Button>
@@ -67,7 +68,10 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {hasRole("vendor") && (
-                  <DropdownMenuItem onClick={() => navigate({ to: "/dashboard" })}>Vendor Dashboard</DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem onClick={() => navigate({ to: "/dashboard" })}>Vendor Dashboard</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate({ to: "/listings/new" })}>📋 Post a Listing</DropdownMenuItem>
+                  </>
                 )}
                 <DropdownMenuItem onClick={() => navigate({ to: "/customer-dashboard" })}>My Dashboard</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate({ to: "/post-requirement" })}>{t("postRequirement")}</DropdownMenuItem>
@@ -98,6 +102,7 @@ export function Navbar() {
             ))}
             <Link to="/machines" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">Machines for Sale</Link>
             <Link to="/materials" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">Materials & Spares</Link>
+            <Link to="/listings" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">📋 Classifieds</Link>
 
             {isAuthenticated && (
               <Link to="/dashboard" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">

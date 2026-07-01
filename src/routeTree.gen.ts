@@ -13,6 +13,7 @@ import { Route as RequirementsRouteImport } from './routes/requirements'
 import { Route as RegisterVendorRouteImport } from './routes/register-vendor'
 import { Route as MaterialsRouteImport } from './routes/materials'
 import { Route as MachinesRouteImport } from './routes/machines'
+import { Route as ListingsRouteImport } from './routes/listings'
 import { Route as BrowseRouteImport } from './routes/browse'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -20,12 +21,14 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as VendorSlugRouteImport } from './routes/vendor.$slug'
 import { Route as MaterialsSlugRouteImport } from './routes/materials_.$slug'
 import { Route as MachinesSlugRouteImport } from './routes/machines_.$slug'
+import { Route as ListingsIdRouteImport } from './routes/listings_.$id'
 import { Route as AuthenticatedPostRequirementRouteImport } from './routes/_authenticated/post-requirement'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCustomerDashboardRouteImport } from './routes/_authenticated/customer-dashboard'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders.$id'
 import { Route as AuthenticatedMaterialsNewRouteImport } from './routes/_authenticated/materials.new'
 import { Route as AuthenticatedMachinesNewRouteImport } from './routes/_authenticated/machines.new'
+import { Route as AuthenticatedListingsNewRouteImport } from './routes/_authenticated/listings.new'
 
 const RequirementsRoute = RequirementsRouteImport.update({
   id: '/requirements',
@@ -45,6 +48,11 @@ const MaterialsRoute = MaterialsRouteImport.update({
 const MachinesRoute = MachinesRouteImport.update({
   id: '/machines',
   path: '/machines',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListingsRoute = ListingsRouteImport.update({
+  id: '/listings',
+  path: '/listings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BrowseRoute = BrowseRouteImport.update({
@@ -81,6 +89,11 @@ const MachinesSlugRoute = MachinesSlugRouteImport.update({
   path: '/machines/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ListingsIdRoute = ListingsIdRouteImport.update({
+  id: '/listings_/$id',
+  path: '/listings/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedPostRequirementRoute =
   AuthenticatedPostRequirementRouteImport.update({
     id: '/post-requirement',
@@ -115,11 +128,18 @@ const AuthenticatedMachinesNewRoute =
     path: '/machines/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedListingsNewRoute =
+  AuthenticatedListingsNewRouteImport.update({
+    id: '/listings/new',
+    path: '/listings/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
+  '/listings': typeof ListingsRoute
   '/machines': typeof MachinesRoute
   '/materials': typeof MaterialsRoute
   '/register-vendor': typeof RegisterVendorRoute
@@ -127,9 +147,11 @@ export interface FileRoutesByFullPath {
   '/customer-dashboard': typeof AuthenticatedCustomerDashboardRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/post-requirement': typeof AuthenticatedPostRequirementRoute
+  '/listings/$id': typeof ListingsIdRoute
   '/machines/$slug': typeof MachinesSlugRoute
   '/materials/$slug': typeof MaterialsSlugRoute
   '/vendor/$slug': typeof VendorSlugRoute
+  '/listings/new': typeof AuthenticatedListingsNewRoute
   '/machines/new': typeof AuthenticatedMachinesNewRoute
   '/materials/new': typeof AuthenticatedMaterialsNewRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
@@ -138,6 +160,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
+  '/listings': typeof ListingsRoute
   '/machines': typeof MachinesRoute
   '/materials': typeof MaterialsRoute
   '/register-vendor': typeof RegisterVendorRoute
@@ -145,9 +168,11 @@ export interface FileRoutesByTo {
   '/customer-dashboard': typeof AuthenticatedCustomerDashboardRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/post-requirement': typeof AuthenticatedPostRequirementRoute
+  '/listings/$id': typeof ListingsIdRoute
   '/machines/$slug': typeof MachinesSlugRoute
   '/materials/$slug': typeof MaterialsSlugRoute
   '/vendor/$slug': typeof VendorSlugRoute
+  '/listings/new': typeof AuthenticatedListingsNewRoute
   '/machines/new': typeof AuthenticatedMachinesNewRoute
   '/materials/new': typeof AuthenticatedMaterialsNewRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
@@ -158,6 +183,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/browse': typeof BrowseRoute
+  '/listings': typeof ListingsRoute
   '/machines': typeof MachinesRoute
   '/materials': typeof MaterialsRoute
   '/register-vendor': typeof RegisterVendorRoute
@@ -165,9 +191,11 @@ export interface FileRoutesById {
   '/_authenticated/customer-dashboard': typeof AuthenticatedCustomerDashboardRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/post-requirement': typeof AuthenticatedPostRequirementRoute
+  '/listings_/$id': typeof ListingsIdRoute
   '/machines_/$slug': typeof MachinesSlugRoute
   '/materials_/$slug': typeof MaterialsSlugRoute
   '/vendor/$slug': typeof VendorSlugRoute
+  '/_authenticated/listings/new': typeof AuthenticatedListingsNewRoute
   '/_authenticated/machines/new': typeof AuthenticatedMachinesNewRoute
   '/_authenticated/materials/new': typeof AuthenticatedMaterialsNewRoute
   '/_authenticated/orders/$id': typeof AuthenticatedOrdersIdRoute
@@ -178,6 +206,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/browse'
+    | '/listings'
     | '/machines'
     | '/materials'
     | '/register-vendor'
@@ -185,9 +214,11 @@ export interface FileRouteTypes {
     | '/customer-dashboard'
     | '/dashboard'
     | '/post-requirement'
+    | '/listings/$id'
     | '/machines/$slug'
     | '/materials/$slug'
     | '/vendor/$slug'
+    | '/listings/new'
     | '/machines/new'
     | '/materials/new'
     | '/orders/$id'
@@ -196,6 +227,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/browse'
+    | '/listings'
     | '/machines'
     | '/materials'
     | '/register-vendor'
@@ -203,9 +235,11 @@ export interface FileRouteTypes {
     | '/customer-dashboard'
     | '/dashboard'
     | '/post-requirement'
+    | '/listings/$id'
     | '/machines/$slug'
     | '/materials/$slug'
     | '/vendor/$slug'
+    | '/listings/new'
     | '/machines/new'
     | '/materials/new'
     | '/orders/$id'
@@ -215,6 +249,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/browse'
+    | '/listings'
     | '/machines'
     | '/materials'
     | '/register-vendor'
@@ -222,9 +257,11 @@ export interface FileRouteTypes {
     | '/_authenticated/customer-dashboard'
     | '/_authenticated/dashboard'
     | '/_authenticated/post-requirement'
+    | '/listings_/$id'
     | '/machines_/$slug'
     | '/materials_/$slug'
     | '/vendor/$slug'
+    | '/_authenticated/listings/new'
     | '/_authenticated/machines/new'
     | '/_authenticated/materials/new'
     | '/_authenticated/orders/$id'
@@ -235,10 +272,12 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   BrowseRoute: typeof BrowseRoute
+  ListingsRoute: typeof ListingsRoute
   MachinesRoute: typeof MachinesRoute
   MaterialsRoute: typeof MaterialsRoute
   RegisterVendorRoute: typeof RegisterVendorRoute
   RequirementsRoute: typeof RequirementsRoute
+  ListingsIdRoute: typeof ListingsIdRoute
   MachinesSlugRoute: typeof MachinesSlugRoute
   MaterialsSlugRoute: typeof MaterialsSlugRoute
   VendorSlugRoute: typeof VendorSlugRoute
@@ -272,6 +311,13 @@ declare module '@tanstack/react-router' {
       path: '/machines'
       fullPath: '/machines'
       preLoaderRoute: typeof MachinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/listings': {
+      id: '/listings'
+      path: '/listings'
+      fullPath: '/listings'
+      preLoaderRoute: typeof ListingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/browse': {
@@ -323,6 +369,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MachinesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/listings_/$id': {
+      id: '/listings_/$id'
+      path: '/listings/$id'
+      fullPath: '/listings/$id'
+      preLoaderRoute: typeof ListingsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/post-requirement': {
       id: '/_authenticated/post-requirement'
       path: '/post-requirement'
@@ -365,6 +418,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMachinesNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/listings/new': {
+      id: '/_authenticated/listings/new'
+      path: '/listings/new'
+      fullPath: '/listings/new'
+      preLoaderRoute: typeof AuthenticatedListingsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -372,6 +432,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCustomerDashboardRoute: typeof AuthenticatedCustomerDashboardRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedPostRequirementRoute: typeof AuthenticatedPostRequirementRoute
+  AuthenticatedListingsNewRoute: typeof AuthenticatedListingsNewRoute
   AuthenticatedMachinesNewRoute: typeof AuthenticatedMachinesNewRoute
   AuthenticatedMaterialsNewRoute: typeof AuthenticatedMaterialsNewRoute
   AuthenticatedOrdersIdRoute: typeof AuthenticatedOrdersIdRoute
@@ -381,6 +442,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCustomerDashboardRoute: AuthenticatedCustomerDashboardRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedPostRequirementRoute: AuthenticatedPostRequirementRoute,
+  AuthenticatedListingsNewRoute: AuthenticatedListingsNewRoute,
   AuthenticatedMachinesNewRoute: AuthenticatedMachinesNewRoute,
   AuthenticatedMaterialsNewRoute: AuthenticatedMaterialsNewRoute,
   AuthenticatedOrdersIdRoute: AuthenticatedOrdersIdRoute,
@@ -394,10 +456,12 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   BrowseRoute: BrowseRoute,
+  ListingsRoute: ListingsRoute,
   MachinesRoute: MachinesRoute,
   MaterialsRoute: MaterialsRoute,
   RegisterVendorRoute: RegisterVendorRoute,
   RequirementsRoute: RequirementsRoute,
+  ListingsIdRoute: ListingsIdRoute,
   MachinesSlugRoute: MachinesSlugRoute,
   MaterialsSlugRoute: MaterialsSlugRoute,
   VendorSlugRoute: VendorSlugRoute,

@@ -15,7 +15,9 @@ import {
 } from "@/components/ui/select";
 import { useLanguage } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, ShieldCheck, MessageCircle, Languages, Hammer, Factory, CheckCircle2, ArrowRight } from "lucide-react";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as any;
+import { Search, ShieldCheck, MessageCircle, Languages, Hammer, Factory, CheckCircle2, ArrowRight, Tag, Megaphone, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -71,6 +73,21 @@ function HomePage() {
     },
   });
 
+  const { data: latestClassifieds = [] } = useQuery({
+    queryKey: ["latest-classifieds-home"],
+    queryFn: async () => {
+      const { data } = await db
+        .from("classified_listings")
+        .select("id,listing_type,title,price_type,price,price_unit,zone,is_urgent,created_at,photo_urls,vendor:vendors(business_name)")
+        .eq("is_active", true)
+        .gt("expires_at", new Date().toISOString())
+        .order("is_urgent", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(4);
+      return data ?? [];
+    },
+  });
+
   const onSearch = () => {
     const params = new URLSearchParams();
     if (keyword) params.set("q", keyword);
@@ -96,10 +113,8 @@ function HomePage() {
   ];
 
   const plans = [
-    { name: "free", price: "₹0", features: ["Basic listing", "3 photos", "WhatsApp button"] },
-    { name: "standard", price: "₹1,500", features: ["10 photos", "Analytics", "Enhanced profile"] },
-    { name: "premium", price: "₹4,000", features: ["25 photos", "Priority ranking", "Verified badge", "Homepage feature"] },
-    { name: "gold", price: "₹8,000", features: ["50 photos", "Priority leads", "Dedicated support"] },
+    { name: "free",    price: "₹0",    popular: false, features: ["Basic listing", "3 photos", "WhatsApp button"] },
+    { name: "premium", price: "₹4,000", popular: true,  features: ["25 photos", "Priority ranking", "Verified badge", "Homepage feature"] },
   ];
 
   return (
@@ -258,6 +273,65 @@ function HomePage() {
         </div>
       </section>
 
+      {/* CLASSIFIEDS PREVIEW */}
+      <section className="bg-gradient-to-br from-amber-50 to-orange-50 py-16 dark:from-amber-950/20 dark:to-orange-950/20">
+        <div className="container mx-auto px-4">
+          <div className="mb-6 flex items-end justify-between">
+            <div>
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
+                <Tag className="h-3 w-3" /> Industrial Classifieds
+              </div>
+              <h2 className="font-display text-3xl font-bold">Latest Listings</h2>
+              <p className="text-sm text-muted-foreground">Job work, machines for sale, materials wanted</p>
+            </div>
+            <Button asChild variant="outline" size="sm"><Link to="/listings">View all <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link></Button>
+          </div>
+          {latestClassifieds.length === 0 ? (
+            <EmptyMsg text="No listings yet. Be the first to post!" cta={{ to: "/listings", label: "Browse Classifieds" }} />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {latestClassifieds.map((listing: any) => (
+                <Link
+                  key={listing.id}
+                  to="/listings/$id"
+                  params={{ id: listing.id }}
+                  className="group overflow-hidden rounded-xl border border-border bg-card transition hover:-translate-y-0.5 hover:border-orange-300/60 hover:shadow-lg"
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                    {listing.photo_urls?.[0] ? (
+                      <img src={listing.photo_urls[0]} alt={listing.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <Megaphone className="h-10 w-10 text-muted-foreground/30" />
+                      </div>
+                    )}
+                    {listing.is_urgent && (
+                      <span className="absolute right-2 top-2 flex items-center gap-0.5 rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
+                        <Zap className="h-3 w-3" /> Urgent
+                      </span>
+                    )}
+                    <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-xs font-semibold capitalize text-white">
+                      {listing.listing_type.replace(/_/g, " ")}
+                    </span>
+                  </div>
+                  <div className="p-3">
+                    <p className="line-clamp-2 text-sm font-semibold leading-tight">{listing.title}</p>
+                    <div className="mt-1 font-display text-base font-bold text-orange-600">
+                      {listing.price_type === "contact" || !listing.price
+                        ? "Contact for price"
+                        : `₹${Number(listing.price).toLocaleString("en-IN")}${listing.price_unit ? " / " + listing.price_unit : ""}`}
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {listing.vendor?.business_name}{listing.zone && ` · ${listing.zone}`}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* ZONES */}
 
       <section className="container mx-auto px-4 py-16">
@@ -294,16 +368,16 @@ function HomePage() {
       {/* PRICING */}
       <section className="container mx-auto px-4 py-16">
         <SectionHeading title={t("pricing")} subtitle="Choose the plan that fits your workshop" />
-        <div className="grid gap-4 md:grid-cols-4">
-          {plans.map((p, i) => (
-            <div key={p.name} className={`relative rounded-lg border bg-card p-6 ${i === 2 ? "border-accent shadow-lg" : "border-border"}`}>
-              {i === 2 && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent px-3 py-0.5 text-xs font-semibold text-accent-foreground">Most Popular</span>}
-              <div className="font-display text-lg font-bold capitalize">{p.name}</div>
-              <div className="mt-2 font-display text-3xl font-bold">{p.price}<span className="text-sm font-medium text-muted-foreground">{p.price !== "₹0" && t("perYear")}</span></div>
-              <ul className="my-4 space-y-2 text-sm text-muted-foreground">
-                {p.features.map((f) => <li key={f} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 text-success" />{f}</li>)}
+        <div className="mx-auto grid max-w-2xl gap-6 md:grid-cols-2">
+          {plans.map((p) => (
+            <div key={p.name} className={`relative rounded-xl border bg-card p-8 ${p.popular ? "border-accent shadow-xl" : "border-border"}`}>
+              {p.popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent px-4 py-0.5 text-xs font-semibold text-accent-foreground">Most Popular</span>}
+              <div className="font-display text-xl font-bold capitalize">{p.name}</div>
+              <div className="mt-2 font-display text-4xl font-bold">{p.price}<span className="text-sm font-medium text-muted-foreground">{p.price !== "₹0" && t("perYear")}</span></div>
+              <ul className="my-5 space-y-3 text-sm text-muted-foreground">
+                {p.features.map((f) => <li key={f} className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />{f}</li>)}
               </ul>
-              <Button asChild className="w-full" variant={i === 2 ? "default" : "outline"}>
+              <Button asChild className="w-full" variant={p.popular ? "default" : "outline"} size="lg">
                 <Link to="/register-vendor">{t("getStarted")}</Link>
               </Button>
             </div>
