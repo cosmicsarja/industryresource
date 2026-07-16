@@ -29,6 +29,7 @@ import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedMaterialsNewRouteImport } from './routes/_authenticated/materials.new'
 import { Route as AuthenticatedMachinesNewRouteImport } from './routes/_authenticated/machines.new'
 import { Route as AuthenticatedListingsNewRouteImport } from './routes/_authenticated/listings.new'
+import { Route as AuthenticatedOrdersMachineIdRouteImport } from './routes/_authenticated/orders.machine.$id'
 
 const RequirementsRoute = RequirementsRouteImport.update({
   id: '/requirements',
@@ -134,6 +135,12 @@ const AuthenticatedListingsNewRoute =
     path: '/listings/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedOrdersMachineIdRoute =
+  AuthenticatedOrdersMachineIdRouteImport.update({
+    id: '/orders/machine/$id',
+    path: '/orders/machine/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/machines/new': typeof AuthenticatedMachinesNewRoute
   '/materials/new': typeof AuthenticatedMaterialsNewRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
+  '/orders/machine/$id': typeof AuthenticatedOrdersMachineIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -176,6 +184,7 @@ export interface FileRoutesByTo {
   '/machines/new': typeof AuthenticatedMachinesNewRoute
   '/materials/new': typeof AuthenticatedMaterialsNewRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
+  '/orders/machine/$id': typeof AuthenticatedOrdersMachineIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -199,6 +208,7 @@ export interface FileRoutesById {
   '/_authenticated/machines/new': typeof AuthenticatedMachinesNewRoute
   '/_authenticated/materials/new': typeof AuthenticatedMaterialsNewRoute
   '/_authenticated/orders/$id': typeof AuthenticatedOrdersIdRoute
+  '/_authenticated/orders/machine/$id': typeof AuthenticatedOrdersMachineIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/machines/new'
     | '/materials/new'
     | '/orders/$id'
+    | '/orders/machine/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/machines/new'
     | '/materials/new'
     | '/orders/$id'
+    | '/orders/machine/$id'
   id:
     | '__root__'
     | '/'
@@ -265,6 +277,7 @@ export interface FileRouteTypes {
     | '/_authenticated/machines/new'
     | '/_authenticated/materials/new'
     | '/_authenticated/orders/$id'
+    | '/_authenticated/orders/machine/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -425,6 +438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedListingsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/orders/machine/$id': {
+      id: '/_authenticated/orders/machine/$id'
+      path: '/orders/machine/$id'
+      fullPath: '/orders/machine/$id'
+      preLoaderRoute: typeof AuthenticatedOrdersMachineIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -436,6 +456,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMachinesNewRoute: typeof AuthenticatedMachinesNewRoute
   AuthenticatedMaterialsNewRoute: typeof AuthenticatedMaterialsNewRoute
   AuthenticatedOrdersIdRoute: typeof AuthenticatedOrdersIdRoute
+  AuthenticatedOrdersMachineIdRoute: typeof AuthenticatedOrdersMachineIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -446,6 +467,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMachinesNewRoute: AuthenticatedMachinesNewRoute,
   AuthenticatedMaterialsNewRoute: AuthenticatedMaterialsNewRoute,
   AuthenticatedOrdersIdRoute: AuthenticatedOrdersIdRoute,
+  AuthenticatedOrdersMachineIdRoute: AuthenticatedOrdersMachineIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

@@ -106,6 +106,19 @@ interface MaterialOrder {
   buyer: { full_name: string | null } | null;
 }
 
+interface MachineOrder {
+  id: string;
+  quantity: number;
+  unit_price: number;
+  total_amount: number;
+  buyer_name: string;
+  buyer_phone: string;
+  payment_status: string;
+  fulfillment_status: string;
+  created_at: string;
+  machine: { title: string; slug: string } | null;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: string }) {
@@ -692,9 +705,11 @@ function EnquiriesTab({ vendorId, qc }: { vendorId: string; qc: ReturnType<typeo
 // ─── Orders Tab ───────────────────────────────────────────────────────────────
 
 function OrdersTab({ vendorId, qc }: { vendorId: string; qc: ReturnType<typeof useQueryClient> }) {
+  const [subTab, setSubTab] = useState<"material" | "machine">("material");
   const [filterStatus, setFilterStatus] = useState("all");
 
-  const { data: orders = [], isLoading } = useQuery({
+  // ── Material orders ──
+  const { data: materialOrders = [], isLoading: matLoading } = useQuery({
     queryKey: ["my-orders", vendorId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -707,30 +722,71 @@ function OrdersTab({ vendorId, qc }: { vendorId: string; qc: ReturnType<typeof u
     },
   });
 
-  const updateFulfillment = async (id: string, status: string) => {
+  // ── Machine orders ──
+  const { data: machineOrders = [], isLoading: machLoading } = useQuery({
+    queryKey: ["my-machine-orders", vendorId],
+    queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from("machine_orders")
+        .select("id,quantity,unit_price,total_amount,buyer_name,buyer_phone,payment_status,fulfillment_status,created_at,machine:machine_listings(title,slug)")
+        .eq("vendor_id", vendorId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as MachineOrder[];
+    },
+  });
+
+  const updateMaterialFulfillment = async (id: string, status: string) => {
     const { error } = await supabase.from("material_orders").update({ fulfillment_status: status }).eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Fulfillment status updated"); qc.invalidateQueries({ queryKey: ["my-orders"] }); }
   };
 
-  const filtered = filterStatus === "all" ? orders : orders.filter((o) => o.fulfillment_status === filterStatus);
+  const updateMachineFulfillment = async (id: string, status: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).from("machine_orders").update({ fulfillment_status: status }).eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Fulfillment status updated"); qc.invalidateQueries({ queryKey: ["my-machine-orders"] }); }
+  };
 
-  const totalRevenue = orders.filter(o => o.payment_status === "paid").reduce((s, o) => s + Number(o.total_amount), 0);
-  const pendingCount = orders.filter(o => o.fulfillment_status === "pending").length;
+  const allOrders = subTab === "material" ? materialOrders : machineOrders;
+  const filtered = filterStatus === "all" ? allOrders : allOrders.filter((o) => o.fulfillment_status === filterStatus);
+
+  const totalRevenue = [...materialOrders, ...machineOrders]
+    .filter(o => o.payment_status === "paid")
+    .reduce((s, o) => s + Number(o.total_amount), 0);
+  const pendingCount = [...materialOrders, ...machineOrders].filter(o => o.fulfillment_status === "pending").length;
 
   return (
     <div className="space-y-4">
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard label="Total Orders" value={orders.length} icon={ShoppingCart} />
-        <StatCard label="Pending" value={pendingCount} icon={Clock} />
+        <StatCard label="Material Orders" value={materialOrders.length} icon={ShoppingCart} />
+        <StatCard label="Machine Orders" value={machineOrders.length} icon={Hammer} />
         <StatCard label="Paid Revenue" value={`₹${totalRevenue.toLocaleString("en-IN")}`} icon={TrendingUp} isMonetary />
-        <StatCard label="Delivered" value={orders.filter(o => o.fulfillment_status === "delivered").length} icon={Truck} />
+        <StatCard label="Pending" value={pendingCount} icon={Clock} />
+      </div>
+
+      {/* Sub-tabs */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => { setSubTab("material"); setFilterStatus("all"); }}
+          className={`flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition ${subTab === "material" ? "bg-primary text-primary-foreground" : "border border-border bg-card text-foreground hover:border-primary/40"}`}
+        >
+          <Layers className="h-3.5 w-3.5" /> Material Orders ({materialOrders.length})
+        </button>
+        <button
+          onClick={() => { setSubTab("machine"); setFilterStatus("all"); }}
+          className={`flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition ${subTab === "machine" ? "bg-primary text-primary-foreground" : "border border-border bg-card text-foreground hover:border-primary/40"}`}
+        >
+          <Hammer className="h-3.5 w-3.5" /> Machine Orders ({machineOrders.length})
+        </button>
       </div>
 
       {/* Filter */}
       <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">Filter by:</span>
+        <span className="text-sm text-muted-foreground">Filter by status:</span>
         <div className="flex flex-wrap gap-2">
           {(["all", "pending", "confirmed", "dispatched", "delivered", "cancelled"] as const).map((s) => (
             <button
@@ -744,55 +800,113 @@ function OrdersTab({ vendorId, qc }: { vendorId: string; qc: ReturnType<typeof u
         </div>
       </div>
 
-      {isLoading ? (
-        <LoadingRows />
-      ) : filtered.length === 0 ? (
-        <EmptyState icon={ShoppingCart} text={filterStatus === "all" ? "No orders received yet." : `No ${filterStatus} orders.`} />
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((o) => (
-            <div key={o.id} className="rounded-lg border border-border bg-card p-4">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  {o.material && (
-                    <Link to="/materials/$slug" params={{ slug: o.material.slug }} className="font-semibold hover:text-primary hover:underline">
-                      {o.material.title}
-                    </Link>
-                  )}
-                  <div className="mt-1 flex flex-wrap items-center gap-2">
-                    <StatusBadge status={o.payment_status} />
-                    <StatusBadge status={o.fulfillment_status} />
+      {/* ── Material orders list ── */}
+      {subTab === "material" && (
+        matLoading ? <LoadingRows /> : filtered.length === 0 ? (
+          <EmptyState icon={ShoppingCart} text={filterStatus === "all" ? "No material orders received yet." : `No ${filterStatus} material orders.`} />
+        ) : (
+          <div className="space-y-3">
+            {(filtered as MaterialOrder[]).map((o) => (
+              <div key={o.id} className="rounded-lg border border-border bg-card p-4">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    {o.material && (
+                      <Link to="/materials/$slug" params={{ slug: o.material.slug }} className="font-semibold hover:text-primary hover:underline">
+                        {o.material.title}
+                      </Link>
+                    )}
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <StatusBadge status={o.payment_status} />
+                      <StatusBadge status={o.fulfillment_status} />
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {o.buyer?.full_name && <span>{o.buyer.full_name} · </span>}
+                      <a href={`tel:${o.buyer_phone}`} className="hover:text-primary">{o.buyer_phone}</a>
+                      <span> · Qty: {o.quantity}</span>
+                      <span> · {relativeDate(o.created_at)}</span>
+                    </div>
                   </div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {o.buyer?.full_name && <span>{o.buyer.full_name} · </span>}
-                    <a href={`tel:${o.buyer_phone}`} className="hover:text-primary">{o.buyer_phone}</a>
-                    <span> · Qty: {o.quantity}</span>
-                    <span> · {relativeDate(o.created_at)}</span>
+                  <div className="text-right">
+                    <div className="font-display text-xl font-bold">{formatCurrency(o.total_amount)}</div>
+                    <div className="text-xs text-muted-foreground">{formatCurrency(o.unit_price)} / unit</div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-display text-xl font-bold">{formatCurrency(o.total_amount)}</div>
-                  <div className="text-xs text-muted-foreground">{formatCurrency(o.unit_price)} / unit</div>
-                </div>
+                {o.payment_status === "paid" && o.fulfillment_status !== "delivered" && o.fulfillment_status !== "cancelled" && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+                    <span className="text-xs text-muted-foreground">Update fulfillment:</span>
+                    {(["confirmed", "dispatched", "delivered", "cancelled"] as const).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => updateMaterialFulfillment(o.id, s)}
+                        className={`rounded-md border px-2.5 py-1 text-xs font-medium transition capitalize ${o.fulfillment_status === s ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:border-primary/40"}`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
+            ))}
+          </div>
+        )
+      )}
 
-              {o.payment_status === "paid" && o.fulfillment_status !== "delivered" && o.fulfillment_status !== "cancelled" && (
-                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
-                  <span className="text-xs text-muted-foreground">Fulfillment:</span>
-                  {(["confirmed", "dispatched", "delivered", "cancelled"] as const).map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => updateFulfillment(o.id, s)}
-                      className={`rounded-md border px-2.5 py-1 text-xs font-medium transition capitalize ${o.fulfillment_status === s ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:border-primary/40"}`}
+      {/* ── Machine orders list ── */}
+      {subTab === "machine" && (
+        machLoading ? <LoadingRows /> : filtered.length === 0 ? (
+          <EmptyState icon={Hammer} text={filterStatus === "all" ? "No machine orders received yet." : `No ${filterStatus} machine orders.`} />
+        ) : (
+          <div className="space-y-3">
+            {(filtered as MachineOrder[]).map((o) => (
+              <div key={o.id} className="rounded-lg border border-border bg-card p-4">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    {o.machine && (
+                      <Link to="/machines/$slug" params={{ slug: o.machine.slug }} className="font-semibold hover:text-primary hover:underline">
+                        {o.machine.title}
+                      </Link>
+                    )}
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <StatusBadge status={o.payment_status} />
+                      <StatusBadge status={o.fulfillment_status} />
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      <span>{o.buyer_name} · </span>
+                      <a href={`tel:${o.buyer_phone}`} className="hover:text-primary">{o.buyer_phone}</a>
+                      <span> · Qty: {o.quantity}</span>
+                      <span> · {relativeDate(o.created_at)}</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-display text-xl font-bold">{formatCurrency(o.total_amount)}</div>
+                    <div className="text-xs text-muted-foreground">{formatCurrency(o.unit_price)} / unit</div>
+                    <Link
+                      to="/orders/machine/$id"
+                      params={{ id: o.id }}
+                      className="mt-1 inline-block text-xs text-primary hover:underline"
                     >
-                      {s}
-                    </button>
-                  ))}
+                      View Order →
+                    </Link>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
+                {o.payment_status === "paid" && o.fulfillment_status !== "delivered" && o.fulfillment_status !== "cancelled" && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+                    <span className="text-xs text-muted-foreground">Update fulfillment:</span>
+                    {(["confirmed", "dispatched", "delivered", "cancelled"] as const).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => updateMachineFulfillment(o.id, s)}
+                        className={`rounded-md border px-2.5 py-1 text-xs font-medium transition capitalize ${o.fulfillment_status === s ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:border-primary/40"}`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )
       )}
     </div>
   );

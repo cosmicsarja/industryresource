@@ -86,6 +86,21 @@ interface MaterialOrder {
   vendor: { business_name: string; slug: string; phone: string; whatsapp: string | null } | null;
 }
 
+interface MachineOrderBuyer {
+  id: string;
+  quantity: number;
+  unit_price: number;
+  total_amount: number;
+  buyer_name: string;
+  buyer_phone: string;
+  delivery_address: string | null;
+  payment_status: string;
+  fulfillment_status: string;
+  created_at: string;
+  machine: { title: string; slug: string; condition: string } | null;
+  vendor: { business_name: string; slug: string; phone: string; whatsapp: string | null } | null;
+}
+
 interface MachineEnquiry {
   id: string;
   buyer_name: string;
@@ -207,14 +222,18 @@ function CustomerDashboard() {
       {/* Tabs */}
       <div className="container mx-auto flex-1 px-4 py-6">
         <Tabs defaultValue="saved">
-          <TabsList className="mb-6 grid w-full max-w-md grid-cols-3">
+          <TabsList className="mb-6 grid w-full max-w-lg grid-cols-4">
             <TabsTrigger value="saved" className="gap-1.5">
               <Heart className="h-3.5 w-3.5" />
               Saved
             </TabsTrigger>
             <TabsTrigger value="orders" className="gap-1.5">
-              <ShoppingCart className="h-3.5 w-3.5" />
-              Orders
+              <Layers className="h-3.5 w-3.5" />
+              Materials
+            </TabsTrigger>
+            <TabsTrigger value="machine-orders" className="gap-1.5">
+              <Hammer className="h-3.5 w-3.5" />
+              Machines
             </TabsTrigger>
             <TabsTrigger value="enquiries" className="gap-1.5">
               <MessageSquare className="h-3.5 w-3.5" />
@@ -227,6 +246,9 @@ function CustomerDashboard() {
           </TabsContent>
           <TabsContent value="orders">
             <OrdersTab userId={user.id} />
+          </TabsContent>
+          <TabsContent value="machine-orders">
+            <MachineOrdersTab userId={user.id} />
           </TabsContent>
           <TabsContent value="enquiries">
             <EnquiriesTab userId={user.id} />
@@ -400,7 +422,120 @@ function SavedTab({ userId }: { userId: string }) {
   );
 }
 
-// ─── Orders Tab ───────────────────────────────────────────────────────────────
+// ─── Machine Orders Tab (Customer) ─────────────────────────────────────────────────────
+
+function MachineOrdersTab({ userId }: { userId: string }) {
+  const { data: orders = [], isLoading } = useQuery({
+    queryKey: ["my-machine-orders-buyer", userId],
+    queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from("machine_orders")
+        .select(
+          "id,quantity,unit_price,total_amount,buyer_name,buyer_phone,delivery_address,payment_status,fulfillment_status,created_at," +
+          "machine:machine_listings(title,slug,condition)," +
+          "vendor:vendors(business_name,slug,phone,whatsapp)"
+        )
+        .eq("buyer_id", userId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data as unknown as MachineOrderBuyer[]) ?? [];
+    },
+  });
+
+  const totalSpent = orders.filter((o) => o.payment_status === "paid").reduce((s, o) => s + Number(o.total_amount), 0);
+  const activeOrders = orders.filter((o) => !["delivered", "cancelled"].includes(o.fulfillment_status)).length;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatCard label="Machine Orders" value={orders.length} icon={ShoppingCart} />
+        <StatCard label="Active" value={activeOrders} icon={Truck} />
+        <StatCard label="Delivered" value={orders.filter((o) => o.fulfillment_status === "delivered").length} icon={CheckCircle} />
+        <StatCard label="Total Spent" value={`₹${totalSpent.toLocaleString("en-IN")}`} icon={TrendingUp} />
+      </div>
+
+      {isLoading ? (
+        <Skeleton />
+      ) : orders.length === 0 ? (
+        <Empty icon={ShoppingCart} text="No machine orders yet.">
+          <Button asChild size="sm" className="mt-4"><Link to="/machines"><ArrowRight className="mr-1.5 h-3.5 w-3.5" />Browse Machines</Link></Button>
+        </Empty>
+      ) : (
+        <div className="space-y-3">
+          {orders.map((o) => (
+            <div key={o.id} className="rounded-lg border border-border bg-card p-4 transition hover:border-primary/30">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  {o.machine ? (
+                    <Link to="/machines/$slug" params={{ slug: o.machine.slug }} className="font-semibold hover:text-primary hover:underline line-clamp-1">
+                      {o.machine.title}
+                    </Link>
+                  ) : (
+                    <span className="font-semibold text-muted-foreground">Machine removed</span>
+                  )}
+                  {o.vendor && (
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      by{" "}
+                      <Link to="/vendor/$slug" params={{ slug: o.vendor.slug }} className="hover:text-primary">
+                        {o.vendor.business_name}
+                      </Link>
+                    </div>
+                  )}
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <StatusBadge status={o.payment_status} />
+                    <StatusBadge status={o.fulfillment_status} />
+                  </div>
+                  <div className="mt-1.5 text-xs text-muted-foreground">
+                    Qty: {o.quantity} · {fmtCurrency(o.unit_price)}/unit · Ordered {relDate(o.created_at)}
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <div className="font-display text-xl font-bold">{fmtCurrency(o.total_amount)}</div>
+                  <Link
+                    to="/orders/machine/$id"
+                    params={{ id: o.id }}
+                    className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:border-primary/40 hover:bg-muted transition"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    View Order
+                  </Link>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <FulfillmentTracker status={o.fulfillment_status} />
+              </div>
+
+              {o.vendor && o.fulfillment_status !== "delivered" && o.fulfillment_status !== "cancelled" && (
+                <div className="mt-3 flex gap-2 border-t border-border pt-3">
+                  <a
+                    href={`tel:${o.vendor.phone}`}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium hover:border-primary/40 hover:bg-muted transition"
+                  >
+                    <Phone className="h-3.5 w-3.5" /> Call Vendor
+                  </a>
+                  {o.vendor.whatsapp && (
+                    <a
+                      href={`https://wa.me/91${o.vendor.whatsapp.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex h-8 items-center gap-1.5 rounded-md bg-green-600 px-3 text-xs font-medium text-white hover:bg-green-700 transition"
+                    >
+                      WhatsApp Vendor
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Material Orders Tab (Customer) ─────────────────────────────────────────────────────
 
 function OrdersTab({ userId }: { userId: string }) {
   const { data: orders = [], isLoading } = useQuery({
