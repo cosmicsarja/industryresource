@@ -5,14 +5,14 @@ import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/lib/i18n";
-import { Clock, Plus } from "lucide-react";
+import { CheckCircle, Clock, Plus, Send } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/requirements")({
   head: () => ({
     meta: [
-      { title: "Requirements Board | IndustrialBelgaum.com" },
-      { name: "description", content: "Post your industrial requirement and get quotes from verified Belagavi vendors." },
+      { title: "Requirements Board | IndustryResource" },
+      { name: "description", content: "Post your industrial requirement and get quotes from verified vendors across our network." },
     ],
   }),
   component: RequirementsPage,
@@ -21,15 +21,16 @@ export const Route = createFileRoute("/requirements")({
 function RequirementsPage() {
   const { t } = useLanguage();
   const { data: reqs = [], isLoading } = useQuery({
-    queryKey: ["requirements"],
+    queryKey: ["requirements-with-matches"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("requirements")
-        .select("*, category:categories(name)")
+        .select("*, category:categories(name), matches:requirement_matches(id)")
         .eq("status", "open")
         .order("is_urgent", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(100);
+      if (error) throw error;
       return data ?? [];
     },
   });
@@ -59,25 +60,36 @@ function RequirementsPage() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {reqs.map((r) => (
-              <article key={r.id} className="rounded-lg border border-border bg-card p-5 transition hover:border-primary/40 hover:shadow-md">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-display text-lg font-bold text-foreground">{r.title}</h3>
-                  {r.is_urgent && <span className="shrink-0 rounded-full bg-destructive/15 px-2 py-0.5 text-xs font-semibold text-destructive">URGENT</span>}
-                </div>
-                <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{r.description}</p>
-                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                  {r.category && <span className="font-semibold text-primary">{r.category.name}</span>}
-                  {r.zone_preference && <span>· {r.zone_preference}</span>}
-                  {r.budget_range && <span>· Budget: {r.budget_range}</span>}
-                  {r.deadline && <span>· Deadline: {r.deadline}</span>}
-                </div>
-                <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-xs">
-                  <span className="flex items-center gap-1 text-muted-foreground"><Clock className="h-3.5 w-3.5" />{formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}</span>
-                  <span className="rounded-full bg-secondary px-2 py-0.5 font-medium">{r.quote_count} quotes</span>
-                </div>
-              </article>
-            ))}
+            {reqs.map((r: any) => {
+              const matchCount = Array.isArray(r.matches) ? r.matches.length : 0;
+              const locationStr = r.zone_preference ? `${r.zone_preference}, ${r.city || "Belagavi"}` : (r.city || "Belagavi");
+              return (
+                <article key={r.id} className="rounded-lg border border-border bg-card p-5 transition hover:border-primary/40 hover:shadow-md">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="font-display text-lg font-bold text-foreground">{r.title}</h3>
+                    {r.is_urgent && <span className="shrink-0 rounded-full bg-destructive/15 px-2 py-0.5 text-xs font-semibold text-destructive">URGENT</span>}
+                  </div>
+                  <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{r.description}</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    {r.category && <span className="font-semibold text-primary">{r.category.name}</span>}
+                    <span>· {locationStr}</span>
+                    {r.budget_range && <span>· Budget: {r.budget_range}</span>}
+                    {r.deadline && <span>· Deadline: {r.deadline}</span>}
+                  </div>
+
+                  {/* Matched Vendors Trust Badge */}
+                  <div className="mt-3 flex items-center gap-2 rounded-md bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                    <Send className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>Auto-notified <strong>{matchCount > 0 ? matchCount : "matching"}</strong> verified vendor{matchCount !== 1 ? "s" : ""} in {locationStr}</span>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-xs">
+                    <span className="flex items-center gap-1 text-muted-foreground"><Clock className="h-3.5 w-3.5" />{formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}</span>
+                    <span className="rounded-full bg-secondary px-2 py-0.5 font-medium">{r.quote_count} quotes</span>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </main>

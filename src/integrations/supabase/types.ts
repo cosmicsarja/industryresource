@@ -827,6 +827,7 @@ export type Database = {
           quote_count: number
           status: Database["public"]["Enums"]["requirement_status"]
           title: string
+          city: string
           zone_preference: string | null
         }
         Insert: {
@@ -844,6 +845,7 @@ export type Database = {
           quote_count?: number
           status?: Database["public"]["Enums"]["requirement_status"]
           title: string
+          city?: string
           zone_preference?: string | null
         }
         Update: {
@@ -861,6 +863,7 @@ export type Database = {
           quote_count?: number
           status?: Database["public"]["Enums"]["requirement_status"]
           title?: string
+          city?: string
           zone_preference?: string | null
         }
         Relationships: [
@@ -876,6 +879,48 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      requirement_matches: {
+        Row: {
+          id: string
+          requirement_id: string
+          vendor_id: string
+          match_score: number
+          seen_at: string | null
+          notified_at: string
+        }
+        Insert: {
+          id?: string
+          requirement_id: string
+          vendor_id: string
+          match_score?: number
+          seen_at?: string | null
+          notified_at?: string
+        }
+        Update: {
+          id?: string
+          requirement_id?: string
+          vendor_id?: string
+          match_score?: number
+          seen_at?: string | null
+          notified_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requirement_matches_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "requirements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requirement_matches_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -1130,7 +1175,8 @@ export type Database = {
           whatsapp: string | null
           whatsapp_clicks: number
           working_hours: Json | null
-          zone: Database["public"]["Enums"]["belagavi_zone"] | null
+          city: string
+          zone: string | null
         }
         Insert: {
           business_name: string
@@ -1164,7 +1210,8 @@ export type Database = {
           whatsapp?: string | null
           whatsapp_clicks?: number
           working_hours?: Json | null
-          zone?: Database["public"]["Enums"]["belagavi_zone"] | null
+          city?: string
+          zone?: string | null
         }
         Update: {
           business_name?: string
@@ -1198,7 +1245,8 @@ export type Database = {
           whatsapp?: string | null
           whatsapp_clicks?: number
           working_hours?: Json | null
-          zone?: Database["public"]["Enums"]["belagavi_zone"] | null
+          city?: string
+          zone?: string | null
         }
         Relationships: [
           {
@@ -1340,15 +1388,6 @@ export type Database = {
         | "quote_sent"
         | "saved"
       app_role: "customer" | "vendor" | "admin"
-      belagavi_zone:
-        | "Udyambag"
-        | "Auto Nagar"
-        | "Machhe KIADB"
-        | "Gokul Road"
-        | "Khanapur Road"
-        | "Bogarves"
-        | "Shahapur"
-        | "Other"
       enquiry_channel: "whatsapp" | "call" | "form" | "email"
       enquiry_status: "new" | "read" | "responded" | "closed"
       payment_status: "pending" | "success" | "failed" | "refunded"
@@ -1497,16 +1536,6 @@ export const Constants = {
         "saved",
       ],
       app_role: ["customer", "vendor", "admin"],
-      belagavi_zone: [
-        "Udyambag",
-        "Auto Nagar",
-        "Machhe KIADB",
-        "Gokul Road",
-        "Khanapur Road",
-        "Bogarves",
-        "Shahapur",
-        "Other",
-      ],
       enquiry_channel: ["whatsapp", "call", "form", "email"],
       enquiry_status: ["new", "read", "responded", "closed"],
       payment_status: ["pending", "success", "failed", "refunded"],

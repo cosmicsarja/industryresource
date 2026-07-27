@@ -36,7 +36,7 @@ export const Route = createFileRoute("/machines_/$slug")({
   head: ({ params }) => ({
     meta: [
       {
-        title: `Machine for Sale in Belagavi | ${params.slug} | IndustrialBelgaum.com`,
+        title: `Machine for Sale | ${params.slug} | IndustryResource`,
       },
     ],
   }),

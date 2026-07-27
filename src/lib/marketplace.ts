@@ -6,6 +6,8 @@ export type MachineFilters = {
   category?: string | null;
   condition?: string | null;
   zone?: string | null;
+  city?: string | null;
+  machineType?: string | null;
   minPrice?: number | null;
   maxPrice?: number | null;
   sort?: "newest" | "price_low" | "price_high";
@@ -23,7 +25,7 @@ export function useMachines(f: MachineFilters) {
   return useQuery({
     queryKey: ["machines", f],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("search_machines", {
+      const { data, error } = await (supabase.rpc as any)("search_machines", {
         search_query: f.q || undefined,
         filter_category: f.category || undefined,
         filter_condition: f.condition || undefined,
@@ -31,6 +33,7 @@ export function useMachines(f: MachineFilters) {
         min_price: f.minPrice ?? undefined,
         max_price: f.maxPrice ?? undefined,
         sort_by: f.sort || "newest",
+        spec_machine_type: f.machineType || undefined,
       });
       if (error) throw error;
       return data ?? [];
@@ -134,7 +137,18 @@ export function slugify(s: string) {
   return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) + "-" + Math.random().toString(36).slice(2, 7);
 }
 
-export const ZONES = ["Udyambag", "Auto Nagar", "Machhe KIADB", "Gokul Road", "Khanapur Road", "Bogarves", "Shahapur", "Other"];
+/** Canonical city→zone map. Add cities here — no UI code changes required. */
+export const CITY_ZONES: Record<string, string[]> = {
+  Belagavi: ["Udyambag", "Auto Nagar", "Machhe KIADB", "Gokul Road", "Khanapur Road", "Bogarves", "Shahapur", "Other"],
+};
+
+export const CITIES = Object.keys(CITY_ZONES);
+
+/** Flat list of all zones across all cities (for generic zone-only filters). */
+export const ALL_ZONES = [...new Set(Object.values(CITY_ZONES).flat())];
+
+/** Backward-compat alias — Belagavi zones. */
+export const ZONES = CITY_ZONES["Belagavi"];
 export const UNITS = ["kg", "ton", "piece", "meter", "liter", "box", "set", "roll"] as const;
 export const CONDITIONS: { value: string; label: string }[] = [
   { value: "new", label: "New" },

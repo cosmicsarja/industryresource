@@ -310,7 +310,7 @@ function NewListingPage() {
               id="listing-tags"
               value={form.tags}
               onChange={(e) => setForm({ ...form, tags: e.target.value })}
-              placeholder="e.g. CNC, Turning, MS, Belagavi"
+              placeholder="e.g. CNC, Turning, MS, Urgent"
             />
           </div>
 

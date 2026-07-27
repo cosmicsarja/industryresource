@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Login or Sign Up | IndustrialBelgaum.com" }] }),
+  head: () => ({ meta: [{ title: "Login or Sign Up | IndustryResource" }] }),
   component: AuthPage,
 });
 

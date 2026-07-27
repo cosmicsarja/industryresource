@@ -4,8 +4,8 @@ export type Lang = "en" | "kn";
 
 const T = {
   en: {
-    siteName: "IndustrialBelgaum.com",
-    tagline: "Belagavi's First Industrial Marketplace",
+    siteName: "IndustryResource",
+    tagline: "India's Multi-City Industrial Marketplace",
     browse: "Browse",
     requirements: "Requirements",
     postRequirement: "Post a Requirement",
@@ -16,10 +16,12 @@ const T = {
     searchPlaceholder: "Search for lathe, CNC, welding...",
     findVendors: "Find Vendors",
     category: "Category",
+    city: "City",
     zone: "Zone",
     allCategories: "All Categories",
+    allCities: "All Cities",
     allZones: "All Zones",
-    heroTitle: "Find Any Industrial Workshop in Belagavi — Instantly",
+    heroTitle: "Find Any Industrial Workshop — Instantly",
     heroSub: "Verified vendors. Real machines. Direct WhatsApp connect. No middlemen.",
     featuredCategories: "Featured Categories",
     topRated: "Top Rated Workshops",
@@ -27,8 +29,8 @@ const T = {
     step1: "Search Your Requirement",
     step2: "Compare Verified Vendors",
     step3: "Connect via WhatsApp",
-    industrialZones: "Industrial Zones of Belagavi",
-    whyUs: "Why IndustrialBelgaum",
+    industrialZones: "Industrial Hubs",
+    whyUs: "Why IndustryResource",
     pricing: "Vendor Plans",
     verified: "Verified",
     featured: "Featured",
@@ -64,8 +66,8 @@ const T = {
     saving: "Saving…",
   },
   kn: {
-    siteName: "IndustrialBelgaum.com",
-    tagline: "ಬೆಳಗಾವಿಯ ಮೊದಲ ಕೈಗಾರಿಕಾ ಮಾರುಕಟ್ಟೆ",
+    siteName: "IndustryResource",
+    tagline: "ಭಾರತದ ಬಹು-ನಗರ ಕೈಗಾರಿಕಾ ಮಾರುಕಟ್ಟೆ",
     browse: "ಬ್ರೌಸ್",
     requirements: "ಅವಶ್ಯಕತೆಗಳು",
     postRequirement: "ಅವಶ್ಯಕತೆ ಪೋಸ್ಟ್ ಮಾಡಿ",
@@ -76,10 +78,12 @@ const T = {
     searchPlaceholder: "ಲೇಥ್, ಸಿಎನ್‌ಸಿ, ವೆಲ್ಡಿಂಗ್ ಹುಡುಕಿ...",
     findVendors: "ವಿಕ್ರೇತರನ್ನು ಹುಡುಕಿ",
     category: "ವರ್ಗ",
+    city: "ನಗರ",
     zone: "ವಲಯ",
     allCategories: "ಎಲ್ಲಾ ವರ್ಗಗಳು",
+    allCities: "ಎಲ್ಲಾ ನಗರಗಳು",
     allZones: "ಎಲ್ಲಾ ವಲಯಗಳು",
-    heroTitle: "ಬೆಳಗಾವಿಯಲ್ಲಿ ಯಾವುದೇ ಕೈಗಾರಿಕಾ ಕಾರ್ಯಾಗಾರ ಹುಡುಕಿ — ತಕ್ಷಣ",
+    heroTitle: "ಯಾವುದೇ ಕೈಗಾರಿಕಾ ಕಾರ್ಯಾಗಾರ ಹುಡುಕಿ — ತಕ್ಷಣ",
     heroSub: "ಪರಿಶೀಲಿಸಿದ ವಿಕ್ರೇತರು. ನಿಜವಾದ ಯಂತ್ರಗಳು. ನೇರ ವಾಟ್ಸಾಪ್ ಸಂಪರ್ಕ.",
     featuredCategories: "ವಿಶೇಷ ವರ್ಗಗಳು",
     topRated: "ಅತ್ಯುತ್ತಮ ಕಾರ್ಯಾಗಾರಗಳು",
@@ -87,8 +91,8 @@ const T = {
     step1: "ನಿಮ್ಮ ಅವಶ್ಯಕತೆಯನ್ನು ಹುಡುಕಿ",
     step2: "ಪರಿಶೀಲಿಸಿದ ವಿಕ್ರೇತರನ್ನು ಹೋಲಿಸಿ",
     step3: "ವಾಟ್ಸಾಪ್ ಮೂಲಕ ಸಂಪರ್ಕಿಸಿ",
-    industrialZones: "ಬೆಳಗಾವಿಯ ಕೈಗಾರಿಕಾ ವಲಯಗಳು",
-    whyUs: "ಯಾಕೆ ಇಂಡಸ್ಟ್ರಿಯಲ್‌ಬೆಳಗಾವಿ",
+    industrialZones: "ಕೈಗಾರಿಕಾ ಕೇಂದ್ರಗಳು",
+    whyUs: "ಯಾಕೆ IndustryResource",
     pricing: "ವಿಕ್ರೇತ ಯೋಜನೆಗಳು",
     verified: "ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
     featured: "ವಿಶೇಷ",
@@ -139,12 +143,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const stored = localStorage.getItem("ibg_lang") as Lang | null;
+    const stored = localStorage.getItem("ir_lang") as Lang | null;
     if (stored === "en" || stored === "kn") setLangState(stored);
   }, []);
   const setLang = (l: Lang) => {
     setLangState(l);
-    if (typeof window !== "undefined") localStorage.setItem("ibg_lang", l);
+    if (typeof window !== "undefined") localStorage.setItem("ir_lang", l);
   };
   const t = (key: Key) => T[lang][key] ?? T.en[key];
   return <Ctx.Provider value={{ lang, setLang, t }}>{children}</Ctx.Provider>;

@@ -32,8 +32,8 @@ export const Route = createFileRoute("/listings")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Industrial Classifieds Belagavi | IndustrialBelgaum.com" },
-      { name: "description", content: "Browse job work offers, machines for sale, materials wanted, and announcements from Belagavi industrial vendors. Free OLX-style classifieds." },
+      { title: "Industrial Classifieds | IndustryResource" },
+      { name: "description", content: "Browse job work offers, machines for sale, materials wanted, and announcements from verified industrial vendors. Free classifieds board." },
     ],
   }),
   component: ListingsPage,
@@ -124,7 +124,7 @@ function ListingsPage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur">
-                <Tag className="h-3 w-3" /> Industrial Classifieds — Belagavi
+                <Tag className="h-3 w-3" /> Industrial Classifieds
               </div>
               <h1 className="font-display text-3xl font-bold md:text-4xl">
                 Industrial Classifieds
@@ -246,7 +246,7 @@ function ListingsPage() {
         {!user && listings.length > 0 && (
           <div className="mt-10 rounded-xl border border-orange-200 bg-orange-50 p-6 text-center dark:border-orange-900 dark:bg-orange-950/30">
             <Megaphone className="mx-auto mb-2 h-8 w-8 text-orange-600" />
-            <h3 className="font-display text-lg font-bold text-foreground">Are you a vendor in Belagavi?</h3>
+            <h3 className="font-display text-lg font-bold text-foreground">Are you an industrial vendor?</h3>
             <p className="mt-1 text-sm text-muted-foreground">Register your business and post listings for free.</p>
             <div className="mt-4 flex justify-center gap-3">
               <Button asChild size="sm" variant="outline"><Link to="/auth">Sign In</Link></Button>

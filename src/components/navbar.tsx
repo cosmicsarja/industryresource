@@ -24,12 +24,10 @@ export function Navbar() {
       <div className="container mx-auto flex h-16 items-center justify-between gap-4 px-4">
         {/* Logo */}
         <Link to="/" className="flex shrink-0 items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground">
-            <Factory className="h-5 w-5" />
-          </div>
+          <img src="/logo.png" alt="IndustryResource" className="h-10 w-auto" />
           <div className="font-display text-lg font-bold leading-none">
-            <span className="text-primary">Industrial</span>
-            <span className="text-accent">Belgaum</span>
+            <span className="text-primary">Industry</span>
+            <span className="text-accent">Resource</span>
           </div>
         </Link>
 

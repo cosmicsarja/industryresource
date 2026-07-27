@@ -34,7 +34,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/materials_/$slug")({
   head: () => ({
-    meta: [{ title: "Material for Sale in Belagavi | IndustrialBelgaum.com" }],
+    meta: [{ title: "Material for Sale | IndustryResource" }],
   }),
   component: MaterialDetail,
 });

@@ -12,13 +12,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/use-auth";
 import { CheckCircle2, Plus, Trash2 } from "lucide-react";
+import { CITY_ZONES, CITIES } from "@/lib/marketplace";
 
 export const Route = createFileRoute("/register-vendor")({
-  head: () => ({ meta: [{ title: "List Your Business | IndustrialBelgaum.com" }] }),
+  head: () => ({ meta: [{ title: "List Your Business | IndustryResource" }] }),
   component: RegisterVendorPage,
 });
 
-const ZONES = ["Udyambag", "Auto Nagar", "Machhe KIADB", "Gokul Road", "Khanapur Road", "Bogarves", "Shahapur", "Other"];
 const PLANS = [
   { name: "free", price: "₹0", features: ["Basic listing", "3 photos", "WhatsApp button"] },
   { name: "standard", price: "₹1,500/yr", features: ["10 photos", "Analytics", "Enhanced profile"] },
@@ -38,7 +38,7 @@ function RegisterVendorPage() {
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
-    business_name: "", category_id: "", zone: "Other", phone: "", whatsapp: "", email: "",
+    business_name: "", category_id: "", city: CITIES[0] ?? "Belagavi", zone: "Other", phone: "", whatsapp: "", email: "",
     established_year: "", employee_count: "", full_address: "",
     description: "", description_kn: "",
     subscription_plan: "free" as "free" | "standard" | "premium" | "gold",
@@ -76,6 +76,7 @@ function RegisterVendorPage() {
       business_name: form.business_name,
       slug,
       category_id: form.category_id || null,
+      city: form.city || "Belagavi",
       zone: form.zone as never,
       phone: form.phone,
       whatsapp: form.whatsapp || form.phone,
@@ -105,7 +106,7 @@ function RegisterVendorPage() {
       <header className="border-b border-border bg-gradient-to-br from-primary to-primary/90 text-primary-foreground">
         <div className="container mx-auto px-4 py-10">
           <h1 className="font-display text-3xl font-bold md:text-4xl">List Your Business</h1>
-          <p className="mt-1 text-primary-foreground/80">Reach thousands of customers in Belagavi. Free to start.</p>
+          <p className="mt-1 text-primary-foreground/80">Reach thousands of industrial buyers across our network. Free to start.</p>
         </div>
       </header>
 
@@ -134,10 +135,17 @@ function RegisterVendorPage() {
                   </Select>
                 </div>
                 <div>
+                  <Label>City *</Label>
+                  <Select value={form.city} onValueChange={(v) => setForm({ ...form, city: v, zone: "Other" })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{CITIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label>Zone *</Label>
                   <Select value={form.zone} onValueChange={(v) => setForm({ ...form, zone: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{ZONES.map((z) => <SelectItem key={z} value={z}>{z}</SelectItem>)}</SelectContent>
+                    <SelectContent>{(CITY_ZONES[form.city] ?? []).map((z) => <SelectItem key={z} value={z}>{z}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div><Label>Phone *</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required /></div>

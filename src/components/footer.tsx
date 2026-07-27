@@ -12,14 +12,12 @@ export function Footer() {
       <div className="container mx-auto grid gap-8 px-4 py-12 md:grid-cols-4">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground">
-              <Factory className="h-5 w-5" />
-            </div>
+            <img src="/logo.png" alt="IndustryResource" className="h-10 w-auto" />
             <span className="font-display text-lg font-bold">
-              <span className="text-primary">Industrial</span><span className="text-accent">Belgaum</span>
+              <span className="text-primary">Industry</span><span className="text-accent">Resource</span>
             </span>
           </div>
-          <p className="text-sm text-muted-foreground">Belagavi's first hyper-local B2B industrial marketplace.</p>
+          <p className="text-sm text-muted-foreground">India's multi-city B2B industrial marketplace — zone-level precision, region-wide reach.</p>
         </div>
         <div>
           <h4 className="mb-3 font-display font-semibold">Discover</h4>
@@ -39,13 +37,13 @@ export function Footer() {
         <div>
           <h4 className="mb-3 font-display font-semibold">Contact</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li className="flex items-center gap-2"><Mail className="h-4 w-4" /> admin@industrialbelgaum.com</li>
-            <li className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Belagavi, Karnataka 590001</li>
+            <li className="flex items-center gap-2"><Mail className="h-4 w-4" /> admin@industryresource.in</li>
+            <li className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Belagavi, Karnataka</li>
           </ul>
         </div>
       </div>
       <div className="border-t border-border py-4 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} IndustrialBelgaum.com — Built for Belagavi's industry.
+        © {new Date().getFullYear()} IndustryResource — Connecting India's industrial ecosystem.
       </div>
     </footer>
   );

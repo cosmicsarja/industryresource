@@ -15,28 +15,31 @@ import {
 } from "@/components/ui/select";
 import { useLanguage } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { CITY_ZONES, CITIES } from "@/lib/marketplace";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
-import { Search, ShieldCheck, MessageCircle, Languages, Hammer, Factory, CheckCircle2, ArrowRight, Tag, Megaphone, Zap } from "lucide-react";
+import {
+  Search, ShieldCheck, MessageCircle, Languages, Hammer,
+  Factory, CheckCircle2, ArrowRight, Tag, Megaphone, Zap,
+  MapPin, Globe, TrendingUp,
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Find Industrial Workshops in Belagavi | IndustrialBelgaum.com" },
-      { name: "description", content: "Search 2,500+ verified industrial vendors in Belagavi — CNC, lathe, welding, fabrication, hydraulic repair and more. Connect directly via WhatsApp." },
+      { title: "Find Industrial Workshops Across India | IndustryResource" },
+      { name: "description", content: "Search 2,500+ verified industrial vendors — CNC, lathe, welding, fabrication, hydraulic repair and more. Multi-city coverage with zone-level precision. Connect directly via WhatsApp." },
     ],
   }),
   component: HomePage,
 });
-
-const ZONES = ["Udyambag", "Auto Nagar", "Machhe KIADB", "Gokul Road", "Khanapur Road", "Bogarves", "Shahapur", "Other"];
 
 function HomePage() {
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState("");
   const [categorySlug, setCategorySlug] = useState<string>("all");
-  const [zone, setZone] = useState<string>("all");
+  const [city, setCity] = useState<string>("all");
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -46,7 +49,7 @@ function HomePage() {
     },
   });
 
-  const { data: featured = [] } = useQuery({
+  const { data: featured = [], isLoading: featuredLoading } = useQuery({
     queryKey: ["featured-vendors"],
     queryFn: async () => {
       const { data } = await supabase
@@ -57,6 +60,26 @@ function HomePage() {
         .order("rating_avg", { ascending: false })
         .limit(6);
       return (data ?? []) as VendorCardData[];
+    },
+  });
+
+  // Load primary photos for featured vendors
+  const featuredIds = featured.map((v) => v.id);
+  const { data: featuredPhotos = {} } = useQuery({
+    queryKey: ["featured-vendor-photos", featuredIds],
+    enabled: featuredIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("vendor_photos")
+        .select("vendor_id,photo_url,is_primary,sort_order")
+        .in("vendor_id", featuredIds)
+        .order("is_primary", { ascending: false })
+        .order("sort_order");
+      const map: Record<string, string> = {};
+      for (const p of data ?? []) {
+        if (!map[p.vendor_id] || p.is_primary) map[p.vendor_id] = p.photo_url;
+      }
+      return map;
     },
   });
 
@@ -92,19 +115,16 @@ function HomePage() {
     const params = new URLSearchParams();
     if (keyword) params.set("q", keyword);
     if (categorySlug !== "all") params.set("category", categorySlug);
-    if (zone !== "all") params.set("zone", zone);
+    if (city !== "all") params.set("city", city);
     navigate({ to: "/browse", search: Object.fromEntries(params) as never });
   };
 
-  const stats = [
-    { v: "2,500+", k: "Industrial Units" },
-    { v: "₹4,200 Cr", k: "Annual Turnover" },
-    { v: "20+", k: "Service Categories" },
-    { v: "0", k: "Dedicated Platforms Before Us" },
-  ];
+
+
+
 
   const why = [
-    { icon: MapPin, t: "Belagavi-Only Focus", d: "Hyper-local. Every vendor is from Belagavi." },
+    { icon: Globe, t: "Hyper-Local Precision", d: "Zone-level accuracy within each city — find the workshop in your exact industrial hub." },
     { icon: ShieldCheck, t: "Verified Listings", d: "Real workshops, real machines, real reviews." },
     { icon: Languages, t: "Kannada Support", d: "Full ಕನ್ನಡ language toggle across the site." },
     { icon: MessageCircle, t: "WhatsApp Connect", d: "Direct chat with vendors. No middlemen." },
@@ -123,11 +143,17 @@ function HomePage() {
 
       {/* HERO */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground">
-        <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "32px 32px" }} />
+        {/* Real industrial background image with overlay */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-25"
+          style={{ backgroundImage: "url('/hero-bg.jpg')" }}
+          aria-hidden="true"
+        />
+        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "32px 32px" }} />
         <div className="container relative mx-auto px-4 py-16 md:py-24">
           <div className="mx-auto max-w-4xl text-center">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Belagavi's first industrial marketplace
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Multi-city industrial marketplace — starting in Belagavi
             </div>
             <h1 className="font-display text-4xl font-bold leading-tight md:text-6xl">
               {t("heroTitle")}
@@ -146,11 +172,11 @@ function HomePage() {
                   {categories.map((c) => <SelectItem key={c.id} value={c.slug}>{lang === "kn" ? c.name_kn || c.name : c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={zone} onValueChange={setZone}>
-                <SelectTrigger className="h-11 border-0 bg-background text-foreground"><SelectValue placeholder={t("zone")} /></SelectTrigger>
+              <Select value={city} onValueChange={setCity}>
+                <SelectTrigger className="h-11 border-0 bg-background text-foreground"><SelectValue placeholder={t("city")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("allZones")}</SelectItem>
-                  {ZONES.map((z) => <SelectItem key={z} value={z}>{z}</SelectItem>)}
+                  <SelectItem value="all">{t("allCities")}</SelectItem>
+                  {CITIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Button onClick={onSearch} size="lg" className="h-11 bg-accent text-accent-foreground hover:bg-accent/90">
@@ -159,30 +185,25 @@ function HomePage() {
             </div>
           </div>
 
-          {/* STATS */}
-          <div className="mx-auto mt-12 grid max-w-5xl grid-cols-2 gap-4 md:grid-cols-4">
-            {stats.map((s) => (
-              <div key={s.k} className="rounded-lg border border-white/10 bg-white/5 px-4 py-5 text-center backdrop-blur">
-                <div className="font-display text-2xl font-bold md:text-3xl text-accent">{s.v}</div>
-                <div className="mt-1 text-xs text-primary-foreground/70">{s.k}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
       {/* CATEGORIES */}
       <section className="container mx-auto px-4 py-16">
-        <SectionHeading title={t("featuredCategories")} subtitle="20 specialized industrial categories serving Belagavi" />
+        <SectionHeading title={t("featuredCategories")} subtitle="20 specialized industrial categories across our growing network" />
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-5">
-          {categories.map((c) => (
-            <Link key={c.id} to="/browse" search={{ category: c.slug } as never} className="group rounded-lg border border-border bg-card p-4 text-center transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
-              <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground">
-                <Factory className="h-5 w-5" />
-              </div>
-              <div className="text-sm font-semibold text-foreground line-clamp-2">{lang === "kn" ? c.name_kn || c.name : c.name}</div>
-            </Link>
-          ))}
+          {categories.length === 0 ? (
+            <CategorySkeleton />
+          ) : (
+            categories.map((c) => (
+              <Link key={c.id} to="/browse" search={{ category: c.slug } as never} className="group rounded-lg border border-border bg-card p-4 text-center transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
+                <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                  <Factory className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <div className="text-sm font-semibold text-foreground line-clamp-2">{lang === "kn" ? c.name_kn || c.name : c.name}</div>
+              </Link>
+            ))
+          )}
         </div>
       </section>
 
@@ -190,11 +211,19 @@ function HomePage() {
       <section className="bg-card/40 py-16">
         <div className="container mx-auto px-4">
           <SectionHeading title={t("topRated")} subtitle="The highest rated workshops on the platform" />
-          {featured.length === 0 ? (
-            <EmptyMsg text="No vendors listed yet. Be the first to list your workshop!" cta={{ to: "/register-vendor", label: t("listBusiness") }} />
+          {featuredLoading ? (
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => <VendorSkeleton key={i} />)}
+            </div>
+          ) : featured.length === 0 ? (
+            <EmptyState
+              icon={<Factory className="h-10 w-10 text-muted-foreground/30" />}
+              text="No vendors listed yet. Be the first to list your workshop!"
+              cta={{ to: "/register-vendor", label: t("listBusiness") }}
+            />
           ) : (
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {featured.map((v) => <VendorCard key={v.id} v={v} />)}
+              {featured.map((v) => <VendorCard key={v.id} v={{ ...v, primary_photo: featuredPhotos[v.id] ?? null }} />)}
             </div>
           )}
           <div className="mt-8 text-center">
@@ -227,12 +256,16 @@ function HomePage() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <h2 className="font-display text-3xl font-bold">Open Requirements</h2>
-              <p className="text-sm text-muted-foreground">Latest jobs from Belagavi customers</p>
+              <p className="text-sm text-muted-foreground">Latest jobs from industrial buyers across our network</p>
             </div>
             <Button asChild variant="outline" size="sm"><Link to="/requirements">View all</Link></Button>
           </div>
           {latestReqs.length === 0 ? (
-            <EmptyMsg text="No open requirements right now." cta={{ to: "/post-requirement", label: t("postRequirement") }} />
+            <EmptyState
+              icon={<TrendingUp className="h-10 w-10 text-muted-foreground/30" />}
+              text="No open requirements right now."
+              cta={{ to: "/post-requirement", label: t("postRequirement") }}
+            />
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
               {latestReqs.map((r) => (
@@ -261,12 +294,12 @@ function HomePage() {
           <Link to="/machines" className="group rounded-xl border border-border bg-card p-6 transition hover:border-primary/40 hover:shadow-lg">
             <div className="mb-2 inline-grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary"><Hammer className="h-5 w-5" /></div>
             <h3 className="font-display text-xl font-bold">Machines for Sale</h3>
-            <p className="mt-1 text-sm text-muted-foreground">New and used industrial machines from verified Belagavi sellers. Direct contact, no middlemen.</p>
+            <p className="mt-1 text-sm text-muted-foreground">New and used industrial machines from verified sellers. Direct contact, no middlemen.</p>
             <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">Browse machines <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></div>
           </Link>
           <Link to="/materials" className="group rounded-xl border border-border bg-card p-6 transition hover:border-accent/40 hover:shadow-lg">
             <div className="mb-2 inline-grid h-10 w-10 place-items-center rounded-md bg-accent/10 text-accent"><CheckCircle2 className="h-5 w-5" /></div>
-            <h3 className="font-display text-xl font-bold">Materials & Spares</h3>
+            <h3 className="font-display text-xl font-bold">Materials &amp; Spares</h3>
             <p className="mt-1 text-sm text-muted-foreground">Raw materials, bearings, hoses, casting scrap. Enquire directly or buy online.</p>
             <div className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-accent">Browse materials <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></div>
           </Link>
@@ -287,7 +320,11 @@ function HomePage() {
             <Button asChild variant="outline" size="sm"><Link to="/listings">View all <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link></Button>
           </div>
           {latestClassifieds.length === 0 ? (
-            <EmptyMsg text="No listings yet. Be the first to post!" cta={{ to: "/listings", label: "Browse Classifieds" }} />
+            <EmptyState
+              icon={<Megaphone className="h-10 w-10 text-muted-foreground/30" />}
+              text="No listings yet. Be the first to post!"
+              cta={{ to: "/listings", label: "Browse Classifieds" }}
+            />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {latestClassifieds.map((listing: any) => (
@@ -299,10 +336,10 @@ function HomePage() {
                 >
                   <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                     {listing.photo_urls?.[0] ? (
-                      <img src={listing.photo_urls[0]} alt={listing.title} className="h-full w-full object-cover transition group-hover:scale-105" />
+                      <img src={listing.photo_urls[0]} alt={listing.title} className="h-full w-full object-cover transition group-hover:scale-105" loading="lazy" width={400} height={300} />
                     ) : (
                       <div className="flex h-full items-center justify-center">
-                        <Megaphone className="h-10 w-10 text-muted-foreground/30" />
+                        <Megaphone className="h-10 w-10 text-muted-foreground/30" aria-hidden="true" />
                       </div>
                     )}
                     {listing.is_urgent && (
@@ -332,31 +369,49 @@ function HomePage() {
         </div>
       </section>
 
-      {/* ZONES */}
-
+      {/* INDUSTRIAL HUBS — data-driven: City → Zone */}
       <section className="container mx-auto px-4 py-16">
-        <SectionHeading title={t("industrialZones")} subtitle="Explore vendors by Belagavi's industrial hubs" />
-        <div className="grid gap-3 md:grid-cols-3">
-          {ZONES.filter(z => z !== "Other").map((z) => (
-            <Link key={z} to="/browse" search={{ zone: z } as never} className="group rounded-lg border border-border bg-card p-5 transition hover:border-primary/40 hover:shadow-md">
-              <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-bold text-foreground">{z}</h3>
-                <ArrowRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
+        <SectionHeading title={t("industrialZones")} subtitle="Browse vendors by city and industrial zone — more cities coming soon" />
+        {CITIES.map((cityName) => (
+          <div key={cityName} className="mb-10">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5">
+                <MapPin className="h-4 w-4 text-primary" />
+                <span className="font-display font-bold text-primary">{cityName}</span>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">Industrial zone of Belagavi</p>
-            </Link>
-          ))}
-        </div>
+              <div className="h-px flex-1 bg-border" />
+              <Link to="/browse" search={{ city: cityName } as never} className="text-xs text-muted-foreground hover:text-primary">
+                View all in {cityName} →
+              </Link>
+            </div>
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {(CITY_ZONES[cityName] ?? []).filter((z) => z !== "Other").map((z) => (
+                <Link
+                  key={z}
+                  to="/browse"
+                  search={{ city: cityName, zone: z } as never}
+                  className="group rounded-lg border border-border bg-card p-4 transition hover:border-primary/40 hover:shadow-md"
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-display text-base font-bold text-foreground">{z}</h3>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
+                  </div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Industrial zone · {cityName}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
       </section>
 
       {/* WHY US */}
       <section className="bg-card/40 py-16">
         <div className="container mx-auto px-4">
-          <SectionHeading title={t("whyUs")} subtitle="Built for Belagavi's industrial community" />
+          <SectionHeading title={t("whyUs")} subtitle="Built for India's industrial community" />
           <div className="grid gap-4 md:grid-cols-3">
             {why.map((f) => (
               <div key={f.t} className="rounded-lg border border-border bg-card p-5">
-                <div className="mb-2 inline-grid h-9 w-9 place-items-center rounded-md bg-primary/10 text-primary"><f.icon className="h-5 w-5" /></div>
+                <div className="mb-2 inline-grid h-9 w-9 place-items-center rounded-md bg-primary/10 text-primary"><f.icon className="h-5 w-5" aria-hidden="true" /></div>
                 <h3 className="font-display font-semibold">{f.t}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{f.d}</p>
               </div>
@@ -390,10 +445,6 @@ function HomePage() {
   );
 }
 
-function MapPin({ className }: { className?: string }) {
-  return <Factory className={className} />;
-}
-
 function SectionHeading({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="mb-8 text-center">
@@ -403,15 +454,51 @@ function SectionHeading({ title, subtitle }: { title: string; subtitle?: string 
   );
 }
 
-function EmptyMsg({ text, cta }: { text: string; cta?: { to: string; label: string } }) {
+function EmptyState({ icon, text, cta }: { icon: React.ReactNode; text: string; cta?: { to: string; label: string } }) {
   return (
-    <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center">
-      <p className="text-sm text-muted-foreground">{text}</p>
+    <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center">
+      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">{icon}</div>
+      <p className="text-sm font-medium text-muted-foreground">{text}</p>
       {cta && (
-        <Button asChild className="mt-4" size="sm">
+        <Button asChild className="mt-5" size="sm">
           <Link to={cta.to as never}>{cta.label}</Link>
         </Button>
       )}
     </div>
+  );
+}
+
+function VendorSkeleton() {
+  return (
+    <div className="animate-pulse rounded-xl border border-border bg-card p-5">
+      <div className="flex items-start gap-3">
+        <div className="h-10 w-10 rounded-md bg-muted" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 w-2/3 rounded bg-muted" />
+          <div className="h-3 w-1/3 rounded bg-muted" />
+        </div>
+      </div>
+      <div className="mt-3 space-y-2">
+        <div className="h-3 w-full rounded bg-muted" />
+        <div className="h-3 w-4/5 rounded bg-muted" />
+      </div>
+      <div className="mt-4 flex gap-2">
+        <div className="h-8 flex-1 rounded bg-muted" />
+        <div className="h-8 flex-1 rounded bg-muted" />
+      </div>
+    </div>
+  );
+}
+
+function CategorySkeleton() {
+  return (
+    <>
+      {Array.from({ length: 10 }).map((_, i) => (
+        <div key={i} className="animate-pulse rounded-lg border border-border bg-card p-4 text-center">
+          <div className="mx-auto mb-2 h-10 w-10 rounded-md bg-muted" />
+          <div className="mx-auto h-3 w-3/4 rounded bg-muted" />
+        </div>
+      ))}
+    </>
   );
 }

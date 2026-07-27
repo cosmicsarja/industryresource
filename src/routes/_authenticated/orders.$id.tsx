@@ -22,7 +22,7 @@ import {
 
 export const Route = createFileRoute("/_authenticated/orders/$id")({
   head: ({ params }) => ({
-    meta: [{ title: `Order #${params.id.slice(0, 8).toUpperCase()} | IndustrialBelgaum.com` }],
+    meta: [{ title: `Order #${params.id.slice(0, 8).toUpperCase()} | IndustryResource` }],
   }),
   component: OrderDetail,
 });

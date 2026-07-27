@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/customer-dashboard")({
-  head: () => ({ meta: [{ title: "My Dashboard | IndustrialBelgaum.com" }] }),
+  head: () => ({ meta: [{ title: "My Dashboard | IndustryResource" }] }),
   component: CustomerDashboard,
 });
 

@@ -6,15 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MachineCard } from "@/components/marketplace/machine-card";
-import { useMachines, useCategories, ZONES, CONDITIONS, type MachineFilters } from "@/lib/marketplace";
+import { useMachines, useCategories, ZONES, CONDITIONS, CITIES, CITY_ZONES, type MachineFilters } from "@/lib/marketplace";
+import { COMMON_MACHINE_TYPES } from "@/lib/specs-config";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, SlidersHorizontal } from "lucide-react";
 
 export const Route = createFileRoute("/machines")({
   head: () => ({ meta: [
-    { title: "Buy & Sell Industrial Machines in Belagavi | IndustrialBelgaum.com" },
-    { name: "description", content: "Browse new and used industrial machines for sale in Belagavi — CNC, lathe, presses, welding, fabrication. Direct contact with verified sellers." },
+    { title: "Buy & Sell Industrial Machines | IndustryResource" },
+    { name: "description", content: "Browse new and used industrial machines for sale — CNC, lathe, presses, welding, fabrication. Direct contact with verified sellers." },
   ] }),
   component: MachinesPage,
 });
@@ -24,7 +25,7 @@ function MachinesPage() {
   const { data: cats = [] } = useCategories();
   const { data: machines = [], isLoading } = useMachines(f);
 
-  const ids = useMemo(() => machines.map((m) => m.id), [machines]);
+  const ids = useMemo(() => machines.map((m: any) => m.id), [machines]);
   const { data: primaryPhotos = {} } = useQuery({
     queryKey: ["machine-primary-photos", ids],
     enabled: ids.length > 0,
@@ -57,17 +58,61 @@ function MachinesPage() {
 
       <section className="container mx-auto grid gap-6 px-4 py-8 lg:grid-cols-[260px_1fr]">
         <aside className="space-y-4 rounded-lg border border-border bg-card p-4 lg:sticky lg:top-20 lg:h-fit">
-          <h2 className="font-display font-bold">Filters</h2>
+          <div className="flex items-center justify-between border-b border-border pb-2">
+            <h2 className="font-display font-bold text-foreground">Filters</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 text-xs text-muted-foreground"
+              onClick={() => setF({ sort: "newest" })}
+            >
+              Reset
+            </Button>
+          </div>
+
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search machines..." className="pl-8" value={f.q ?? ""} onChange={(e) => setF({ ...f, q: e.target.value })} />
+            <Input placeholder="Search machines or specs..." className="pl-8" value={f.q ?? ""} onChange={(e) => setF({ ...f, q: e.target.value })} />
           </div>
-          <FSelect label="Category" value={f.category ?? "all"} onChange={(v) => setF({ ...f, category: v === "all" ? null : v })} options={[{ value: "all", label: "All" }, ...cats.map((c) => ({ value: c.id, label: c.name }))]} />
-          <FSelect label="Condition" value={f.condition ?? "all"} onChange={(v) => setF({ ...f, condition: v === "all" ? null : v })} options={[{ value: "all", label: "All" }, ...CONDITIONS.map((c) => ({ value: c.value, label: c.label }))]} />
-          <FSelect label="Zone" value={f.zone ?? "all"} onChange={(v) => setF({ ...f, zone: v === "all" ? null : v })} options={[{ value: "all", label: "All" }, ...ZONES.map((z) => ({ value: z, label: z }))]} />
-          <div className="grid grid-cols-2 gap-2">
-            <Input type="number" placeholder="Min ₹" value={f.minPrice ?? ""} onChange={(e) => setF({ ...f, minPrice: e.target.value ? Number(e.target.value) : null })} />
-            <Input type="number" placeholder="Max ₹" value={f.maxPrice ?? ""} onChange={(e) => setF({ ...f, maxPrice: e.target.value ? Number(e.target.value) : null })} />
+
+          {/* Machine Capability Filter Section */}
+          <div className="space-y-3 rounded-lg border border-primary/20 bg-primary/5 p-3">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-primary">
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              <span>Machine Capability Filter</span>
+            </div>
+            
+            <FSelect
+              label="Machine Type"
+              value={(f as any).machineType ?? "all"}
+              onChange={(v) => setF({ ...f, [ "machineType" as any]: v === "all" ? null : v })}
+              options={[{ value: "all", label: "All Machine Types" }, ...COMMON_MACHINE_TYPES.map((t) => ({ value: t, label: t }))]}
+            />
+          </div>
+
+          <FSelect label="Category" value={f.category ?? "all"} onChange={(v) => setF({ ...f, category: v === "all" ? null : v })} options={[{ value: "all", label: "All Categories" }, ...cats.map((c) => ({ value: c.id, label: c.name }))]} />
+          <FSelect label="Condition" value={f.condition ?? "all"} onChange={(v) => setF({ ...f, condition: v === "all" ? null : v })} options={[{ value: "all", label: "All Conditions" }, ...CONDITIONS.map((c) => ({ value: c.value, label: c.label }))]} />
+          <FSelect
+            label="City"
+            value={(f as any).city ?? "all"}
+            onChange={(v) => setF({ ...f, [ "city" as any]: v === "all" ? null : v, zone: null })}
+            options={[{ value: "all", label: "All Cities" }, ...CITIES.map((c) => ({ value: c, label: c }))]}
+          />
+          <FSelect
+            label="Zone"
+            value={f.zone ?? "all"}
+            onChange={(v) => setF({ ...f, zone: v === "all" ? null : v })}
+            options={[
+              { value: "all", label: "All Zones" },
+              ...((f as any).city && CITY_ZONES[(f as any).city] ? CITY_ZONES[(f as any).city] : ZONES).map((z) => ({ value: z, label: z }))
+            ]}
+          />
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-muted-foreground">Price Range (₹)</label>
+            <div className="grid grid-cols-2 gap-2">
+              <Input type="number" placeholder="Min ₹" value={f.minPrice ?? ""} onChange={(e) => setF({ ...f, minPrice: e.target.value ? Number(e.target.value) : null })} />
+              <Input type="number" placeholder="Max ₹" value={f.maxPrice ?? ""} onChange={(e) => setF({ ...f, maxPrice: e.target.value ? Number(e.target.value) : null })} />
+            </div>
           </div>
           <FSelect label="Sort" value={f.sort ?? "newest"} onChange={(v) => setF({ ...f, sort: v as MachineFilters["sort"] })} options={[{ value: "newest", label: "Newest" }, { value: "price_low", label: "Price: Low to High" }, { value: "price_high", label: "Price: High to Low" }]} />
         </aside>
@@ -81,7 +126,7 @@ function MachinesPage() {
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {machines.map((m) => (
+              {machines.map((m: any) => (
                 <MachineCard key={m.id} m={{ ...m, primary_photo: primaryPhotos[m.id] }} />
               ))}
             </div>

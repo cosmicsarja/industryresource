@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://industryresource.in/sitemap.xml
+
+# Block admin/authenticated areas from crawling
+Disallow: /dashboard
+Disallow: /post-requirement
+Disallow: /auth
+Disallow: /orders/

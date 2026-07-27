@@ -73,7 +73,7 @@ export async function openRazorpayCheckout(opts: RazorpayCheckoutOptions): Promi
     key: keyId,
     amount: opts.amount,
     currency: "INR",
-    name: "IndustrialBelgaum",
+    name: "IndustryResource",
     description: opts.description,
     // If you have a server-side razorpay order_id, pass it here:
     // order_id: opts.razorpayOrderId,

@@ -12,19 +12,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+import { CITIES, CITY_ZONES } from "@/lib/marketplace";
+
 export const Route = createFileRoute("/_authenticated/post-requirement")({
-  head: () => ({ meta: [{ title: "Post a Requirement | IndustrialBelgaum.com" }] }),
+  head: () => ({ meta: [{ title: "Post a Requirement | IndustryResource" }] }),
   component: PostRequirementPage,
 });
 
-const ZONES = ["Udyambag", "Auto Nagar", "Machhe KIADB", "Gokul Road", "Khanapur Road", "Bogarves", "Shahapur", "Other"];
 const BUDGETS = ["₹0 - ₹5,000", "₹5,000 - ₹25,000", "₹25,000 - ₹1,00,000", "₹1,00,000+"];
 
 function PostRequirementPage() {
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
-    title: "", description: "", category_id: "", zone_preference: "", material: "",
+    title: "", description: "", category_id: "", city: CITIES[0] ?? "Belagavi", zone_preference: "", material: "",
     quantity: "", budget_range: "", deadline: "", is_urgent: false,
   });
 
@@ -35,6 +36,8 @@ function PostRequirementPage() {
       return data ?? [];
     },
   });
+
+  const availableZones = form.city ? (CITY_ZONES[form.city] ?? []) : [];
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +50,7 @@ function PostRequirementPage() {
       title: form.title,
       description: form.description,
       category_id: form.category_id || null,
+      city: form.city || "Belagavi",
       zone_preference: form.zone_preference || null,
       material: form.material || null,
       quantity: form.quantity || null,
@@ -54,10 +58,10 @@ function PostRequirementPage() {
       deadline: form.deadline || null,
       is_urgent: form.is_urgent,
     };
-    const { error } = await supabase.from("requirements").insert(payload);
+    const { error } = await supabase.from("requirements").insert(payload as any);
     setBusy(false);
     if (error) toast.error(error.message);
-    else { toast.success("Requirement posted!"); navigate({ to: "/requirements" }); }
+    else { toast.success("Requirement posted! Matching vendors notified automatically."); navigate({ to: "/requirements" }); }
   };
 
   return (
@@ -79,10 +83,20 @@ function PostRequirementPage() {
               </Select>
             </div>
             <div>
+              <Label>City *</Label>
+              <Select value={form.city} onValueChange={(v) => setForm({ ...form, city: v, zone_preference: "" })}>
+                <SelectTrigger><SelectValue placeholder="Select City" /></SelectTrigger>
+                <SelectContent>{CITIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label>Preferred zone</Label>
               <Select value={form.zone_preference} onValueChange={(v) => setForm({ ...form, zone_preference: v })}>
-                <SelectTrigger><SelectValue placeholder="Any" /></SelectTrigger>
-                <SelectContent>{ZONES.map((z) => <SelectItem key={z} value={z}>{z}</SelectItem>)}</SelectContent>
+                <SelectTrigger><SelectValue placeholder="Any Zone" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Any Zone</SelectItem>
+                  {availableZones.map((z) => <SelectItem key={z} value={z}>{z}</SelectItem>)}
+                </SelectContent>
               </Select>
             </div>
             <div><Label>Material</Label><Input value={form.material} onChange={(e) => setForm({ ...form, material: e.target.value })} /></div>

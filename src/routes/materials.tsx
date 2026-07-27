@@ -14,8 +14,8 @@ import { Search, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/materials")({
   head: () => ({ meta: [
-    { title: "Industrial Materials & Spares — Belagavi Suppliers | IndustrialBelgaum.com" },
-    { name: "description", content: "Buy raw materials, spare parts and components from verified Belagavi suppliers. Order online or enquire directly." },
+    { title: "Industrial Materials & Spares — Verified Suppliers | IndustryResource" },
+    { name: "description", content: "Buy raw materials, spare parts and components from verified industrial suppliers. Order online or enquire directly." },
   ] }),
   component: MaterialsPage,
 });

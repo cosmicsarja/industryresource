@@ -222,7 +222,7 @@ function ListingDetailPage() {
                   {listing.zone && (
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 shrink-0" />
-                      <span>{listing.zone}, Belagavi</span>
+                      <span>{listing.zone}</span>
                     </div>
                   )}
                   <div className="flex items-center gap-2">

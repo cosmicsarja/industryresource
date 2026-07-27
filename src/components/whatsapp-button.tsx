@@ -7,7 +7,7 @@ export function WhatsAppButton({
   phone,
   vendorId,
   label = "WhatsApp",
-  message = "Hi, I found your workshop on IndustrialBelgaum.com.",
+  message = "Hi, I found your workshop on IndustryResource (industryresource.in).",
   className,
   size = "sm",
 }: {

@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/lib/use-auth";
 import { useCategories, useMyVendor, ZONES, CONDITIONS, slugify } from "@/lib/marketplace";
+import { MACHINE_SPECS_CONFIG, COMMON_MACHINE_TYPES } from "@/lib/specs-config";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Trash2, Plus, Upload, X } from "lucide-react";
@@ -95,7 +97,7 @@ function NewMachine() {
       <Navbar />
       <div className="container mx-auto max-w-3xl px-4 py-8">
         <h1 className="font-display text-3xl font-bold">List a Machine for Sale</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Reach buyers across Belagavi.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Reach industrial buyers across our network.</p>
 
         <form onSubmit={submit} className="mt-6 space-y-6">
           <Card><CardContent className="space-y-3 p-5">
@@ -139,17 +141,95 @@ function NewMachine() {
             <Input type="number" placeholder="Asking price (₹)" disabled={form.price_type === "on_request"} value={form.asking_price} onChange={(e) => setForm({ ...form, asking_price: e.target.value })} />
           </CardContent></Card>
 
-          <Card><CardContent className="space-y-3 p-5">
-            <h2 className="font-display font-bold">Specifications</h2>
-            {specs.map((s, i) => (
-              <div key={i} className="flex gap-2">
-                <Input placeholder="Label (e.g. Power)" value={s.k} onChange={(e) => { const n = [...specs]; n[i].k = e.target.value; setSpecs(n); }} />
-                <Input placeholder="Value (e.g. 5HP)" value={s.v} onChange={(e) => { const n = [...specs]; n[i].v = e.target.value; setSpecs(n); }} />
-                <Button type="button" size="icon" variant="ghost" onClick={() => setSpecs(specs.filter((_, idx) => idx !== i))}><Trash2 className="h-4 w-4" /></Button>
+          <Card className="border-primary/30 bg-primary/5">
+            <CardContent className="space-y-4 p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-display font-bold text-foreground">Machine Capability &amp; Specs</h2>
+                  <p className="text-xs text-muted-foreground">Listings with structured capabilities rank higher in buyer searches.</p>
+                </div>
+                <span className="rounded-full bg-primary/20 px-2.5 py-0.5 text-xs font-bold text-primary">RANK BOOST</span>
               </div>
-            ))}
-            <Button type="button" size="sm" variant="outline" onClick={() => setSpecs([...specs, { k: "", v: "" }])}><Plus className="mr-1 h-4 w-4" /> Add spec</Button>
-          </CardContent></Card>
+
+              <div>
+                <Label className="text-xs font-semibold">Select Machine Category / Type *</Label>
+                <Select
+                  value={form.machine_type}
+                  onValueChange={(v) => {
+                    setForm({ ...form, machine_type: v });
+                    // Auto-fill template specs for this type
+                    const template = MACHINE_SPECS_CONFIG[v];
+                    if (template) {
+                      const newSpecs = template.map((f) => ({ k: f.key, v: "" }));
+                      setSpecs(newSpecs);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="bg-background"><SelectValue placeholder="Select Machine Type for Capability Form" /></SelectTrigger>
+                  <SelectContent>
+                    {COMMON_MACHINE_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Dynamic structured spec inputs */}
+              {form.machine_type && MACHINE_SPECS_CONFIG[form.machine_type] && (
+                <div className="grid gap-3 rounded-lg border border-border bg-card p-3 sm:grid-cols-2">
+                  {MACHINE_SPECS_CONFIG[form.machine_type].map((field) => {
+                    const existing = specs.find((s) => s.k === field.key)?.v || "";
+                    return (
+                      <div key={field.key}>
+                        <Label className="text-xs">{field.label} {field.unit ? `(${field.unit})` : ""}</Label>
+                        {field.type === "select" ? (
+                          <Select
+                            value={existing}
+                            onValueChange={(val) => {
+                              const updated = specs.filter((s) => s.k !== field.key);
+                              updated.push({ k: field.key, v: val });
+                              setSpecs(updated);
+                            }}
+                          >
+                            <SelectTrigger className="mt-1 bg-background"><SelectValue placeholder="Select..." /></SelectTrigger>
+                            <SelectContent>
+                              {field.options?.map((opt) => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input
+                            type={field.type === "number" ? "number" : "text"}
+                            placeholder={field.placeholder}
+                            value={existing}
+                            onChange={(e) => {
+                              const updated = specs.filter((s) => s.k !== field.key);
+                              updated.push({ k: field.key, v: e.target.value });
+                              setSpecs(updated);
+                            }}
+                            className="mt-1 bg-background"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div>
+                <Label className="text-xs font-semibold mb-2 block">Additional Custom Specs</Label>
+                {specs.map((s, i) => (
+                  <div key={i} className="flex gap-2 mb-2">
+                    <Input placeholder="Spec Label (e.g. Spindle Speed)" value={s.k} onChange={(e) => { const n = [...specs]; n[i].k = e.target.value; setSpecs(n); }} className="bg-background" />
+                    <Input placeholder="Value (e.g. 5000 RPM)" value={s.v} onChange={(e) => { const n = [...specs]; n[i].v = e.target.value; setSpecs(n); }} className="bg-background" />
+                    <Button type="button" size="icon" variant="ghost" onClick={() => setSpecs(specs.filter((_, idx) => idx !== i))}><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                ))}
+                <Button type="button" size="sm" variant="outline" onClick={() => setSpecs([...specs, { k: "", v: "" }])} className="bg-background">
+                  <Plus className="mr-1 h-4 w-4" /> Add Custom Spec
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card><CardContent className="space-y-3 p-5">
             <h2 className="font-display font-bold">Description & Location</h2>

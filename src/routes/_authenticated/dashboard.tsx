@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatDistanceToNow } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -223,7 +224,7 @@ function VendorDashboard() {
               Vendor Dashboard
             </div>
             <h1 className="mt-0.5 font-display text-2xl font-bold">{vendor.business_name}</h1>
-            <p className="text-sm text-muted-foreground capitalize">{vendor.subscription_plan} plan · {vendor.zone ?? "Belagavi"}</p>
+            <p className="text-sm text-muted-foreground capitalize">{vendor.subscription_plan} plan · {(vendor as any).city ?? vendor.zone ?? "Belagavi"}</p>
           </div>
           <div className="flex gap-2">
             <Button asChild variant="outline" size="sm">
@@ -244,8 +245,12 @@ function VendorDashboard() {
 
       {/* Tabs */}
       <div className="container mx-auto flex-1 px-4 py-6">
-        <Tabs defaultValue="listings">
-          <TabsList className="mb-6 grid w-full max-w-md grid-cols-3">
+        <Tabs defaultValue="matched-reqs">
+          <TabsList className="mb-6 grid w-full max-w-xl grid-cols-4">
+            <TabsTrigger value="matched-reqs" className="gap-1.5">
+              <TrendingUp className="h-3.5 w-3.5 text-primary" />
+              Matched Leads
+            </TabsTrigger>
             <TabsTrigger value="listings" className="gap-1.5">
               <Package className="h-3.5 w-3.5" />
               My Listings
@@ -259,6 +264,10 @@ function VendorDashboard() {
               Orders
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="matched-reqs">
+            <MatchedRequirementsTab vendorId={vendor.id} qc={qc} />
+          </TabsContent>
 
           <TabsContent value="listings">
             <ListingsTab vendorId={vendor.id} qc={qc} />
@@ -964,9 +973,117 @@ function EmptyState({
 function LoadingRows() {
   return (
     <div className="space-y-2">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="h-14 animate-pulse rounded-lg border border-border bg-card" />
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="h-12 w-full animate-pulse rounded bg-muted" />
       ))}
+    </div>
+  );
+}
+
+function MatchedRequirementsTab({ vendorId, qc }: { vendorId: string; qc: ReturnType<typeof useQueryClient> }) {
+  const { data: matches = [], isLoading } = useQuery({
+    queryKey: ["vendor-matched-requirements", vendorId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("requirement_matches")
+        .select("*, requirement:requirements(*, category:categories(name), customer:profiles(full_name, phone, whatsapp_number))")
+        .eq("vendor_id", vendorId)
+        .order("notified_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const markAsSeen = async (matchId: string) => {
+    await supabase.from("requirement_matches").update({ seen_at: new Date().toISOString() }).eq("id", matchId);
+    qc.invalidateQueries({ queryKey: ["vendor-matched-requirements", vendorId] });
+  };
+
+  if (isLoading) return <LoadingRows />;
+  if (matches.length === 0) {
+    return (
+      <EmptyState
+        icon={InboxIcon}
+        text="No automated requirement matches yet. When buyers post jobs matching your category & location, they will show up here automatically!"
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-lg font-bold">Automated Leads for Your Workshop</h2>
+        <span className="text-xs text-muted-foreground">{matches.length} matching requirement{matches.length !== 1 ? "s" : ""}</span>
+      </div>
+
+      <div className="grid gap-4">
+        {matches.map((m: any) => {
+          const req = m.requirement;
+          if (!req) return null;
+          const isUnseen = !m.seen_at;
+          const waPhone = req.customer?.whatsapp_number || req.customer?.phone || "";
+          const cleanPhone = waPhone.replace(/\D/g, "");
+          const waText = encodeURIComponent(`Hello! I saw your requirement "${req.title}" on IndustryResource.in and would like to provide a quote.`);
+          const waUrl = cleanPhone ? `https://wa.me/91${cleanPhone}?text=${waText}` : null;
+
+          return (
+            <div
+              key={m.id}
+              className={`rounded-xl border p-5 transition ${isUnseen ? "border-primary/50 bg-primary/5 dark:bg-primary/10" : "border-border bg-card"}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    {isUnseen && <Badge variant="default" className="bg-primary text-[10px]">NEW MATCH</Badge>}
+                    {req.is_urgent && <Badge variant="destructive" className="text-[10px]">URGENT</Badge>}
+                    <span className="text-xs text-muted-foreground">Match Score: {m.match_score}/8</span>
+                  </div>
+                  <h3 className="mt-1 font-display text-lg font-bold">{req.title}</h3>
+                </div>
+                <div className="text-right text-xs text-muted-foreground">
+                  <Clock className="inline h-3 w-3 mr-1" />
+                  {formatDistanceToNow(new Date(m.notified_at), { addSuffix: true })}
+                </div>
+              </div>
+
+              <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{req.description}</p>
+
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                {req.category?.name && <span className="font-semibold text-primary">Category: {req.category.name}</span>}
+                <span>Location: {req.zone_preference ? `${req.zone_preference}, ` : ""}{req.city || "Belagavi"}</span>
+                {req.budget_range && <span>Budget: {req.budget_range}</span>}
+                {req.quantity && <span>Qty: {req.quantity}</span>}
+                {req.material && <span>Material: {req.material}</span>}
+              </div>
+
+              <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+                <div className="text-xs text-muted-foreground">
+                  Posted by: <strong>{req.customer?.full_name || "Verified Industrial Buyer"}</strong>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isUnseen && (
+                    <Button size="sm" variant="ghost" onClick={() => markAsSeen(m.id)}>
+                      Mark as read
+                    </Button>
+                  )}
+                  {waUrl ? (
+                    <Button asChild size="sm" className="bg-green-600 hover:bg-green-700 text-white gap-1.5" onClick={() => markAsSeen(m.id)}>
+                      <a href={waUrl} target="_blank" rel="noopener noreferrer">
+                        <MessageSquare className="h-4 w-4" />
+                        Send Quote on WhatsApp
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => markAsSeen(m.id)}>
+                      View Details
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

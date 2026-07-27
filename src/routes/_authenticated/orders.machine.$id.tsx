@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/orders/machine/$id")({
   head: ({ params }) => ({
     meta: [
       {
-        title: `Machine Order #${params.id.slice(0, 8).toUpperCase()} | IndustrialBelgaum.com`,
+        title: `Machine Order #${params.id.slice(0, 8).toUpperCase()} | IndustryResource`,
       },
     ],
   }),

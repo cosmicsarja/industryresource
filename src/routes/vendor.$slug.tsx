@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -46,6 +46,7 @@ function VendorPage() {
   const { slug } = Route.useParams();
   const { t, lang } = useLanguage();
   const { user } = useAuth();
+  const qc = useQueryClient();
 
   const { data: vendor, isLoading } = useQuery({
     queryKey: ["vendor", slug],
@@ -305,7 +306,7 @@ function VendorPage() {
                 {annualTurnover && <InfoRow icon={IndianRupee} label="Annual Turnover" value={annualTurnover} />}
                 {prodCapacity && <InfoRow icon={TrendingUp} label="Production Capacity" value={prodCapacity} />}
                 {gst && <InfoRow icon={ShieldCheck} label="GST Number" value={gst} />}
-                {vendor.zone && <InfoRow icon={MapPin} label="Industrial Zone" value={`${vendor.zone}, Belagavi`} />}
+                {vendor.zone && <InfoRow icon={MapPin} label="Industrial Zone" value={`${vendor.zone}${(vendor as any).city ? `, ${(vendor as any).city}` : ""}`} />}
                 {responseTime && <InfoRow icon={Clock} label="Response Time" value={`Within ${responseTime < 24 ? responseTime + " hours" : "1 business day"}`} />}
               </div>
 
@@ -340,6 +341,7 @@ function VendorPage() {
                   address={vendor.full_address}
                   zone={vendor.zone}
                   businessName={vendor.business_name}
+                  city={(vendor as any).city}
                   fullWidth
                 />
               </div>
@@ -392,18 +394,25 @@ function VendorPage() {
             </TabsContent>
 
             {/* ── REVIEWS ── */}
-            <TabsContent value="reviews" className="space-y-4">
+            <TabsContent value="reviews" className="space-y-6">
+              <AddReviewForm vendorId={vendor.id} onReviewed={() => qc.invalidateQueries({ queryKey: ["reviews", vendor.id] })} />
+
               {reviews.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No reviews yet.</p>
+                <div className="rounded-xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
+                  No reviews yet. Be the first customer to rate this workshop!
+                </div>
               ) : (
                 reviews.map((r: any) => (
-                  <div key={r.id} className="rounded-xl border border-border bg-card p-4">
+                  <div key={r.id} className="rounded-xl border border-border bg-card p-4 space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="font-semibold">{r.customer?.full_name || "Anonymous"}</div>
+                      <div>
+                        <div className="font-semibold text-foreground">{r.customer?.full_name || "Verified Customer"}</div>
+                        {r.job_type && <div className="text-xs text-muted-foreground">Job Type: {r.job_type}</div>}
+                      </div>
                       <StarRating value={r.rating} />
                     </div>
-                    {r.title && <h5 className="mt-2 font-semibold">{r.title}</h5>}
-                    {r.body && <p className="mt-1 text-sm text-muted-foreground">{r.body}</p>}
+                    {r.title && <h5 className="font-semibold text-foreground">{r.title}</h5>}
+                    {r.body && <p className="text-sm text-muted-foreground">{r.body}</p>}
                     {r.vendor_reply && (
                       <div className="mt-3 rounded-lg border-l-2 border-primary bg-primary/5 p-3 text-sm">
                         <div className="font-semibold text-primary">Vendor's reply</div>
@@ -455,6 +464,7 @@ function VendorPage() {
             address={vendor.full_address}
             zone={vendor.zone}
             businessName={vendor.business_name}
+            city={(vendor as any).city}
           />
         </aside>
       </main>
@@ -470,20 +480,23 @@ function VendorMap({
   address,
   zone,
   businessName,
+  city = "Belagavi",
   fullWidth = false,
 }: {
   address?: string | null;
   zone?: string | null;
   businessName: string;
+  city?: string | null;
   fullWidth?: boolean;
 }) {
   // Build a search query: prefer full address, fall back to zone + city
+  const locationCity = city ?? "Belagavi";
   const query = encodeURIComponent(
     address
-      ? `${address}, Belagavi, Karnataka`
+      ? `${address}, ${locationCity}, Karnataka`
       : zone
-      ? `${zone}, Belagavi, Karnataka`
-      : "Belagavi, Karnataka"
+      ? `${zone}, ${locationCity}, Karnataka`
+      : `${locationCity}, Karnataka`
   );
 
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
@@ -495,7 +508,7 @@ function VendorMap({
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-primary" />
           <span className="text-sm font-semibold text-foreground">
-            {zone ? `${zone}, Belagavi` : "Belagavi, Karnataka"}
+            {zone ? `${zone}, ${locationCity}` : `${locationCity}, Karnataka`}
           </span>
         </div>
         <a
@@ -672,7 +685,112 @@ function EnquiryForm({ vendorId, userId, vendorName }: { vendorId: string; userI
         )}
 
         <Button type="submit" className="w-full" disabled={busy}>
-          {busy ? "Sending…" : "Send Requirement"}
+          {busy ? "Sending…" : "Submit Enquiry"}
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+function AddReviewForm({ vendorId, onReviewed }: { vendorId: string; onReviewed: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [jobType, setJobType] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) {
+      toast.error("Please sign in to write a review");
+      setBusy(false);
+      return;
+    }
+
+    const { error } = await supabase.from("reviews").insert({
+      vendor_id: vendorId,
+      customer_id: u.user.id,
+      rating,
+      title: title || null,
+      body: body || null,
+      job_type: jobType || null,
+      is_verified: true,
+    } as any);
+
+    setBusy(false);
+    if (error) {
+      toast.error(error.message || "Failed to submit review");
+    } else {
+      toast.success("Thank you! Your review has been published.");
+      setTitle("");
+      setBody("");
+      setJobType("");
+      setOpen(false);
+      onReviewed();
+    }
+  };
+
+  if (!open) {
+    return (
+      <div className="flex items-center justify-between rounded-xl border border-border bg-card p-4">
+        <div>
+          <h4 className="font-semibold text-foreground">Worked with this workshop?</h4>
+          <p className="text-xs text-muted-foreground">Share your experience to help other industrial buyers.</p>
+        </div>
+        <Button onClick={() => setOpen(true)} size="sm">
+          Write a Review
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-primary/40 bg-card p-5 space-y-4">
+      <div className="flex items-center justify-between border-b border-border pb-3">
+        <h4 className="font-display font-bold text-foreground">Write a Review</h4>
+        <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancel</Button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label className="mb-1 block text-sm">Rating *</Label>
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                onClick={() => setRating(star)}
+                className="p-1 text-amber-400 hover:scale-110 transition-transform"
+              >
+                <Star className={`h-6 w-6 ${star <= rating ? "fill-amber-400" : "text-muted-foreground/30"}`} />
+              </button>
+            ))}
+            <span className="ml-2 text-sm font-bold text-foreground">{rating} / 5</span>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label>Review Title</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Great quality CNC turning" />
+          </div>
+          <div>
+            <Label>Job / Service Type</Label>
+            <Input value={jobType} onChange={(e) => setJobType(e.target.value)} placeholder="e.g. Batch Turning, Welding" />
+          </div>
+        </div>
+
+        <div>
+          <Label>Your Review &amp; Comments</Label>
+          <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={3} placeholder="Describe the quality, turnaround time, accuracy..." required />
+        </div>
+
+        <Button type="submit" className="w-full" disabled={busy}>
+          {busy ? "Submitting..." : "Submit Review"}
         </Button>
       </form>
     </div>
