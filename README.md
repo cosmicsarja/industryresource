@@ -92,5 +92,3 @@ Currently supported:
 
 Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/cosmicsarja/industryresource/issues).
 
-## 📄 License
-
