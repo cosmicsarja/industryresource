@@ -96,13 +96,22 @@ export function Navbar() {
 
         {/* Desktop right section */}
         <div className="hidden items-center gap-2 md:flex">
-          <button
-            onClick={() => setLang(lang === "en" ? "kn" : "en")}
-            className="rounded-md border border-border px-2.5 py-1 text-xs font-semibold transition hover:bg-accent hover:text-accent-foreground"
-            aria-label="Toggle language"
-          >
-            {lang === "en" ? "ಕನ್ನಡ" : "EN"}
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="rounded-md border border-border px-2.5 py-1 text-xs font-semibold transition hover:bg-accent hover:text-accent-foreground uppercase"
+                aria-label="Toggle language"
+              >
+                {lang === "en" ? "EN" : lang === "kn" ? "ಕನ್ನಡ" : lang === "hi" ? "हिंदी" : "मराठी"}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setLang("en")}>English (EN)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLang("kn")}>ಕನ್ನಡ (KN)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLang("hi")}>हिंदी (HI)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLang("mr")}>मराठी (MR)</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {isAuthenticated ? (
             <DropdownMenu>
@@ -242,12 +251,19 @@ export function Navbar() {
             )}
 
             <div className="flex items-center gap-2 pt-2">
-              <button
-                onClick={() => setLang(lang === "en" ? "kn" : "en")}
-                className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold"
-              >
-                {lang === "en" ? "ಕನ್ನಡ" : "EN"}
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold uppercase">
+                    {lang === "en" ? "EN" : lang === "kn" ? "ಕನ್ನಡ" : lang === "hi" ? "हिंदी" : "मराठी"}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={() => setLang("en")}>English (EN)</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLang("kn")}>ಕನ್ನಡ (KN)</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLang("hi")}>हिंदी (HI)</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLang("mr")}>मराठी (MR)</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               {isAuthenticated ? (
                 <Button
                   size="sm"

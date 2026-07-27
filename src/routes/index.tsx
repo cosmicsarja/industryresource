@@ -126,7 +126,7 @@ function HomePage() {
   const why = [
     { icon: Globe, t: "Hyper-Local Precision", d: "Zone-level accuracy within each city — find the workshop in your exact industrial hub." },
     { icon: ShieldCheck, t: "Verified Listings", d: "Real workshops, real machines, real reviews." },
-    { icon: Languages, t: "Kannada Support", d: "Full ಕನ್ನಡ language toggle across the site." },
+    { icon: Languages, t: "Multi-lingual Support", d: "Available in English, Kannada, Hindi, and Marathi." },
     { icon: MessageCircle, t: "WhatsApp Connect", d: "Direct chat with vendors. No middlemen." },
     { icon: CheckCircle2, t: "Free to List", d: "Start with a free vendor profile." },
     { icon: Hammer, t: "Machine-Level Search", d: "Find vendors by exact machine capability." },
