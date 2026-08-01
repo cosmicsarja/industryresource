@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@/lib/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useRef } from "react";
 import {
   Package,
   MessageSquare,
@@ -36,6 +37,10 @@ import {
   RefreshCcw,
   TrendingUp,
   InboxIcon,
+  Image,
+  Star,
+  Upload,
+  Camera,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -246,10 +251,14 @@ function VendorDashboard() {
       {/* Tabs */}
       <div className="container mx-auto flex-1 px-4 py-6">
         <Tabs defaultValue="matched-reqs">
-          <TabsList className="mb-6 grid w-full max-w-xl grid-cols-4">
+          <TabsList className="mb-6 grid w-full max-w-2xl grid-cols-5">
             <TabsTrigger value="matched-reqs" className="gap-1.5">
               <TrendingUp className="h-3.5 w-3.5 text-primary" />
               Matched Leads
+            </TabsTrigger>
+            <TabsTrigger value="photos" className="gap-1.5">
+              <Camera className="h-3.5 w-3.5" />
+              Photos
             </TabsTrigger>
             <TabsTrigger value="listings" className="gap-1.5">
               <Package className="h-3.5 w-3.5" />
@@ -267,6 +276,10 @@ function VendorDashboard() {
 
           <TabsContent value="matched-reqs">
             <MatchedRequirementsTab vendorId={vendor.id} qc={qc} />
+          </TabsContent>
+
+          <TabsContent value="photos">
+            <PhotosTab vendorId={vendor.id} vendorSlug={vendor.slug} subscriptionPlan={vendor.subscription_plan} qc={qc} />
           </TabsContent>
 
           <TabsContent value="listings">
@@ -976,6 +989,357 @@ function LoadingRows() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className="h-12 w-full animate-pulse rounded bg-muted" />
       ))}
+    </div>
+  );
+}
+
+// ─── Photos Tab ───────────────────────────────────────────────────────────────
+
+const PLAN_PHOTO_LIMITS: Record<string, number> = {
+  free: 3,
+  standard: 10,
+  premium: 25,
+  gold: 50,
+};
+
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+interface VendorPhoto {
+  id: string;
+  photo_url: string;
+  caption: string | null;
+  is_primary: boolean;
+  sort_order: number;
+}
+
+function PhotosTab({
+  vendorId,
+  vendorSlug,
+  subscriptionPlan,
+  qc,
+}: {
+  vendorId: string;
+  vendorSlug: string;
+  subscriptionPlan: string;
+  qc: ReturnType<typeof useQueryClient>;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const photoLimit = PLAN_PHOTO_LIMITS[subscriptionPlan] ?? 3;
+
+  const { data: photos = [], isLoading } = useQuery({
+    queryKey: ["my-vendor-photos", vendorId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vendor_photos")
+        .select("*")
+        .eq("vendor_id", vendorId)
+        .order("is_primary", { ascending: false })
+        .order("sort_order");
+      if (error) throw error;
+      return (data ?? []) as VendorPhoto[];
+    },
+  });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["my-vendor-photos", vendorId] });
+    // Also invalidate the public vendor profile cache
+    qc.invalidateQueries({ queryKey: ["vendor-photos", vendorId] });
+    qc.invalidateQueries({ queryKey: ["vendor", vendorSlug] });
+    qc.invalidateQueries({ queryKey: ["featured-vendors"] });
+    qc.invalidateQueries({ queryKey: ["vendor-primary-photos"] });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+
+    // Validate count against plan limit
+    const remaining = photoLimit - photos.length;
+    if (remaining <= 0) {
+      toast.error(`Your ${subscriptionPlan} plan allows a maximum of ${photoLimit} photos. Delete some to upload more.`);
+      return;
+    }
+    const toUpload = files.slice(0, remaining);
+    if (files.length > remaining) {
+      toast.warning(`Only uploading ${remaining} photo(s) — plan limit reached.`);
+    }
+
+    setUploading(true);
+    let uploaded = 0;
+
+    for (let i = 0; i < toUpload.length; i++) {
+      const file = toUpload[i];
+
+      // Validate type
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        toast.error(`"${file.name}" is not a supported image type. Use JPEG, PNG, or WebP.`);
+        continue;
+      }
+
+      // Validate size
+      if (file.size > MAX_SIZE_BYTES) {
+        toast.error(`"${file.name}" exceeds the 5 MB limit (${(file.size / 1024 / 1024).toFixed(1)} MB).`);
+        continue;
+      }
+
+      // Build a unique storage path: {vendor_id}/{uuid}-{sanitized-filename}
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+      const uuid = crypto.randomUUID();
+      const storagePath = `${vendorId}/${uuid}.${ext}`;
+
+      // Upload to Supabase Storage
+      const { error: upErr } = await supabase.storage
+        .from("vendor-photos")
+        .upload(storagePath, file, { upsert: false });
+
+      if (upErr) {
+        toast.error(`Upload failed for "${file.name}": ${upErr.message}`);
+        continue;
+      }
+
+      // Get the permanent public URL
+      const { data: pub } = supabase.storage
+        .from("vendor-photos")
+        .getPublicUrl(storagePath);
+
+      // Determine if this should be the primary photo
+      const isFirst = photos.length === 0 && i === 0;
+
+      // Insert row into vendor_photos table
+      const { error: dbErr } = await supabase.from("vendor_photos").insert({
+        vendor_id: vendorId,
+        photo_url: pub.publicUrl,
+        caption: null,
+        is_primary: isFirst,
+        sort_order: photos.length + i,
+      });
+
+      if (dbErr) {
+        toast.error(`Failed to save photo record: ${dbErr.message}`);
+        // Clean up orphaned storage object
+        await supabase.storage.from("vendor-photos").remove([storagePath]);
+        continue;
+      }
+
+      uploaded++;
+    }
+
+    if (uploaded > 0) {
+      toast.success(`${uploaded} photo${uploaded > 1 ? "s" : ""} uploaded successfully!`);
+      invalidate();
+    }
+
+    setUploading(false);
+    // Reset file input so the same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const setPrimary = async (photo: VendorPhoto) => {
+    if (photo.is_primary) return;
+    // Clear existing primary
+    await supabase
+      .from("vendor_photos")
+      .update({ is_primary: false })
+      .eq("vendor_id", vendorId);
+    // Set new primary
+    const { error } = await supabase
+      .from("vendor_photos")
+      .update({ is_primary: true })
+      .eq("id", photo.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Primary photo updated!");
+    invalidate();
+  };
+
+  const deletePhoto = async (photo: VendorPhoto) => {
+    if (!confirm("Delete this photo? This cannot be undone.")) return;
+    setDeletingId(photo.id);
+
+    // Extract storage path from public URL
+    // URL format: https://.../storage/v1/object/public/vendor-photos/{path}
+    const marker = "/vendor-photos/";
+    const idx = photo.photo_url.indexOf(marker);
+    if (idx !== -1) {
+      const storagePath = photo.photo_url.slice(idx + marker.length);
+      await supabase.storage.from("vendor-photos").remove([storagePath]);
+    }
+
+    const { error } = await supabase.from("vendor_photos").delete().eq("id", photo.id);
+    if (error) { toast.error(error.message); setDeletingId(null); return; }
+
+    // If we deleted the primary, promote the next photo
+    if (photo.is_primary && photos.length > 1) {
+      const next = photos.find((p) => p.id !== photo.id);
+      if (next) {
+        await supabase.from("vendor_photos").update({ is_primary: true }).eq("id", next.id);
+      }
+    }
+
+    toast.success("Photo deleted.");
+    setDeletingId(null);
+    invalidate();
+  };
+
+  if (isLoading) return <LoadingRows />;
+
+  return (
+    <div className="space-y-6">
+      {/* Header row */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-display text-lg font-bold">Profile Photos</h2>
+          <p className="text-sm text-muted-foreground">
+            {photos.length} / {photoLimit} photos used · The primary photo is your cover image on listings.
+          </p>
+        </div>
+        <div>
+          <input
+            ref={fileInputRef}
+            id="photo-upload-input"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            className="hidden"
+            onChange={handleFileChange}
+            disabled={uploading || photos.length >= photoLimit}
+          />
+          <Button
+            id="photo-upload-btn"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading || photos.length >= photoLimit}
+            className="gap-2"
+          >
+            {uploading ? (
+              <RefreshCcw className="h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4" />
+            )}
+            {uploading ? "Uploading…" : "Upload Photos"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Plan limit note */}
+      {photos.length >= photoLimit && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-950/20 dark:text-amber-300">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>
+            You've reached your {subscriptionPlan} plan limit of {photoLimit} photos.
+            Delete a photo to upload a new one, or upgrade your plan for more.
+          </span>
+        </div>
+      )}
+
+      {/* Upload drop hint */}
+      {photos.length === 0 && !uploading && (
+        <button
+          id="photo-upload-dropzone"
+          onClick={() => fileInputRef.current?.click()}
+          className="group flex w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border bg-card p-16 text-center transition hover:border-primary/50 hover:bg-primary/5"
+        >
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted group-hover:bg-primary/10 transition">
+            <Image className="h-8 w-8 text-muted-foreground/50 group-hover:text-primary/60" />
+          </div>
+          <div>
+            <p className="font-medium text-foreground">Upload your first photo</p>
+            <p className="mt-1 text-sm text-muted-foreground">JPEG, PNG or WebP · Max 5 MB each · Up to {photoLimit} photos</p>
+          </div>
+          <span className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+            <Upload className="h-4 w-4" /> Choose Photos
+          </span>
+        </button>
+      )}
+
+      {/* Photo grid */}
+      {photos.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {photos.map((photo) => (
+            <div
+              key={photo.id}
+              className={`group relative overflow-hidden rounded-xl border-2 bg-card transition ${
+                photo.is_primary
+                  ? "border-primary shadow-md"
+                  : "border-border hover:border-primary/40"
+              }`}
+            >
+              {/* Image */}
+              <div className="aspect-[4/3] overflow-hidden bg-muted">
+                <img
+                  src={photo.photo_url}
+                  alt={photo.caption ?? "Vendor photo"}
+                  className="h-full w-full object-cover transition group-hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
+
+              {/* Primary badge */}
+              {photo.is_primary && (
+                <div className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-primary px-2.5 py-0.5 text-xs font-bold text-primary-foreground shadow">
+                  <Star className="h-3 w-3 fill-current" /> Primary
+                </div>
+              )}
+
+              {/* Action bar */}
+              <div className="flex items-center justify-between gap-2 border-t border-border bg-card/95 p-2">
+                {!photo.is_primary ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 gap-1 text-xs"
+                    onClick={() => setPrimary(photo)}
+                    title="Set as primary / cover photo"
+                  >
+                    <Star className="h-3 w-3" /> Set Primary
+                  </Button>
+                ) : (
+                  <span className="text-xs font-medium text-primary">Cover photo</span>
+                )}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                  onClick={() => deletePhoto(photo)}
+                  disabled={deletingId === photo.id}
+                  title="Delete photo"
+                >
+                  {deletingId === photo.id ? (
+                    <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          ))}
+
+          {/* Upload more slot */}
+          {photos.length < photoLimit && (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="flex aspect-[4/3] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-card text-muted-foreground transition hover:border-primary/50 hover:text-primary disabled:opacity-50"
+            >
+              <Upload className="h-6 w-6" />
+              <span className="text-xs font-medium">Add more</span>
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* View profile link */}
+      {photos.length > 0 && (
+        <div className="text-center">
+          <Button asChild variant="outline" size="sm">
+            <a href={`/vendor/${vendorSlug}`} target="_blank" rel="noopener noreferrer">
+              <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview your profile
+            </a>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

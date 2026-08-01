@@ -22,6 +22,7 @@ import { Route as VendorSlugRouteImport } from './routes/vendor.$slug'
 import { Route as MaterialsSlugRouteImport } from './routes/materials_.$slug'
 import { Route as MachinesSlugRouteImport } from './routes/machines_.$slug'
 import { Route as ListingsIdRouteImport } from './routes/listings_.$id'
+import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
 import { Route as AuthenticatedPostRequirementRouteImport } from './routes/_authenticated/post-requirement'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCustomerDashboardRouteImport } from './routes/_authenticated/customer-dashboard'
@@ -95,6 +96,11 @@ const ListingsIdRoute = ListingsIdRouteImport.update({
   path: '/listings/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthenticatedPostRequirementRoute =
   AuthenticatedPostRequirementRouteImport.update({
     id: '/post-requirement',
@@ -144,7 +150,7 @@ const AuthenticatedOrdersMachineIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/browse': typeof BrowseRoute
   '/listings': typeof ListingsRoute
   '/machines': typeof MachinesRoute
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/customer-dashboard': typeof AuthenticatedCustomerDashboardRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/post-requirement': typeof AuthenticatedPostRequirementRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/listings/$id': typeof ListingsIdRoute
   '/machines/$slug': typeof MachinesSlugRoute
   '/materials/$slug': typeof MaterialsSlugRoute
@@ -166,7 +173,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/browse': typeof BrowseRoute
   '/listings': typeof ListingsRoute
   '/machines': typeof MachinesRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByTo {
   '/customer-dashboard': typeof AuthenticatedCustomerDashboardRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/post-requirement': typeof AuthenticatedPostRequirementRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/listings/$id': typeof ListingsIdRoute
   '/machines/$slug': typeof MachinesSlugRoute
   '/materials/$slug': typeof MaterialsSlugRoute
@@ -190,7 +198,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/browse': typeof BrowseRoute
   '/listings': typeof ListingsRoute
   '/machines': typeof MachinesRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/_authenticated/customer-dashboard': typeof AuthenticatedCustomerDashboardRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/post-requirement': typeof AuthenticatedPostRequirementRoute
+  '/auth/reset-password': typeof AuthResetPasswordRoute
   '/listings_/$id': typeof ListingsIdRoute
   '/machines_/$slug': typeof MachinesSlugRoute
   '/materials_/$slug': typeof MaterialsSlugRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/customer-dashboard'
     | '/dashboard'
     | '/post-requirement'
+    | '/auth/reset-password'
     | '/listings/$id'
     | '/machines/$slug'
     | '/materials/$slug'
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/customer-dashboard'
     | '/dashboard'
     | '/post-requirement'
+    | '/auth/reset-password'
     | '/listings/$id'
     | '/machines/$slug'
     | '/materials/$slug'
@@ -269,6 +280,7 @@ export interface FileRouteTypes {
     | '/_authenticated/customer-dashboard'
     | '/_authenticated/dashboard'
     | '/_authenticated/post-requirement'
+    | '/auth/reset-password'
     | '/listings_/$id'
     | '/machines_/$slug'
     | '/materials_/$slug'
@@ -283,7 +295,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   BrowseRoute: typeof BrowseRoute
   ListingsRoute: typeof ListingsRoute
   MachinesRoute: typeof MachinesRoute
@@ -389,6 +401,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListingsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/reset-password': {
+      id: '/auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/auth/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_authenticated/post-requirement': {
       id: '/_authenticated/post-requirement'
       path: '/post-requirement'
@@ -473,10 +492,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AuthRouteChildren {
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   BrowseRoute: BrowseRoute,
   ListingsRoute: ListingsRoute,
   MachinesRoute: MachinesRoute,
