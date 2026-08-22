@@ -92,9 +92,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head><HeadContent /></head>
-      <body>{children}<Scripts /></body>
+      <body>
+        {/* Fixed glass background — blobs + grain texture, z-index below all content */}
+        <div className="ir-bg-root" aria-hidden="true">
+          <div className="ir-blob ir-blob-orange" />
+          <div className="ir-blob ir-blob-teal" />
+          <div className="ir-blob ir-blob-indigo" />
+          <div className="ir-grain" />
+        </div>
+        {children}
+        <Scripts />
+      </body>
     </html>
   );
 }

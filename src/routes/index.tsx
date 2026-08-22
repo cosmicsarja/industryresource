@@ -142,13 +142,7 @@ function HomePage() {
       <Navbar />
 
       {/* HERO */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground">
-        {/* Real industrial background image with overlay */}
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-25"
-          style={{ backgroundImage: "url('/hero-bg.jpg')" }}
-          aria-hidden="true"
-        />
+      <section className="relative overflow-hidden text-primary-foreground">
         <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "32px 32px" }} />
         <div className="container relative mx-auto px-4 py-16 md:py-24">
           <div className="mx-auto max-w-4xl text-center">

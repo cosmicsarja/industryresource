@@ -5,22 +5,35 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium cursor-pointer transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        /* Solid primary — navy — stays fully opaque for accessibility/CTA clarity */
+        default:
+          "bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:shadow-lg hover:-translate-y-0.5",
+        /* Solid destructive */
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        /* Glass secondary button */
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "glass-btn border-white/20 text-foreground hover:border-white/30",
+        /* Glass secondary button (slightly more opaque) */
+        secondary:
+          "glass-btn bg-white/12 border-white/18 text-secondary-foreground",
+        /* Ghost — transparent until hover */
+        ghost:
+          "hover:bg-white/10 hover:text-foreground text-foreground/80 transition-colors",
+        /* Text link */
         link: "text-primary underline-offset-4 hover:underline",
+        /* Safety orange CTA — solid, high-contrast */
+        accent:
+          "bg-accent text-accent-foreground shadow-md hover:bg-accent/90 hover:shadow-[0_0_24px_rgba(249,115,22,0.45)] hover:-translate-y-0.5",
       },
       size: {
         default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
+        sm: "h-8 rounded-lg px-3 text-xs",
+        lg: "h-10 rounded-xl px-8",
         icon: "h-9 w-9",
       },
     },

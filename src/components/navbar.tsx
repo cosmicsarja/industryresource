@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/lib/i18n";
 import { useAuth } from "@/lib/use-auth";
 import { Factory, Menu, X, ShoppingCart, Hammer, Layers, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,9 +18,21 @@ export function Navbar() {
   const { isAuthenticated, signOut, hasRole } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Intensify blur once user scrolls past hero
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <header
+      className={`sticky top-0 z-40 w-full h-16 border-b border-white/10 glass-panel transition-all duration-300 ${
+        scrolled ? "navbar-scrolled" : ""
+      }`}
+    >
       <div className="container mx-auto flex h-16 items-center justify-between gap-4 px-4">
         {/* Logo */}
         <Link to="/" className="flex shrink-0 items-center gap-2">
@@ -74,10 +86,10 @@ export function Navbar() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate({ to: "/machines/new" })} className="gap-2">
-                <Hammer className="h-4 w-4 text-amber-600" /> Sell a Machine
+                <Hammer className="h-4 w-4 text-amber-400" /> Sell a Machine
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate({ to: "/materials/new" })} className="gap-2">
-                <Layers className="h-4 w-4 text-amber-600" /> Sell Material / Spares
+                <Layers className="h-4 w-4 text-amber-400" /> Sell Material / Spares
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate({ to: "/listings/new" })} className="gap-2">
                 📋 Post a Classified
@@ -99,7 +111,7 @@ export function Navbar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="rounded-md border border-border px-2.5 py-1 text-xs font-semibold transition hover:bg-accent hover:text-accent-foreground uppercase"
+                className="glass-btn rounded-lg border border-white/20 px-2.5 py-1 text-xs font-semibold uppercase text-foreground transition hover:border-white/30"
                 aria-label="Toggle language"
               >
                 {lang === "en" ? "EN" : lang === "kn" ? "ಕನ್ನಡ" : lang === "hi" ? "हिंदी" : "मराठी"}
@@ -157,19 +169,19 @@ export function Navbar() {
         </div>
 
         {/* Mobile hamburger */}
-        <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">
+        <button className="md:hidden text-foreground" onClick={() => setOpen(!open)} aria-label="Menu">
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
       {/* Mobile menu */}
       {open && (
-        <div className="border-t border-border bg-background md:hidden">
+        <div className="border-t border-white/10 glass-panel rounded-b-2xl md:hidden">
           <div className="container mx-auto flex flex-col gap-1 px-4 py-3">
             <Link
               to="/browse"
               onClick={() => setOpen(false)}
-              className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+              className="rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-white/10 transition-colors"
             >
               {t("browse")}
             </Link>
@@ -180,21 +192,21 @@ export function Navbar() {
             <Link
               to="/machines"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-white/10 transition-colors"
             >
               <Hammer className="h-4 w-4 text-primary" /> Machines for Sale
             </Link>
             <Link
               to="/materials"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-white/10 transition-colors"
             >
               <Layers className="h-4 w-4 text-primary" /> Materials &amp; Spares
             </Link>
             <Link
               to="/listings"
               onClick={() => setOpen(false)}
-              className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+              className="rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-white/10 transition-colors"
             >
               📋 Classifieds
             </Link>
@@ -205,28 +217,28 @@ export function Navbar() {
             <Link
               to="/machines/new"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-white/10 transition-colors"
             >
-              <Hammer className="h-4 w-4 text-amber-600" /> Sell a Machine
+              <Hammer className="h-4 w-4 text-amber-400" /> Sell a Machine
             </Link>
             <Link
               to="/materials/new"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-white/10 transition-colors"
             >
-              <Layers className="h-4 w-4 text-amber-600" /> Sell Material
+              <Layers className="h-4 w-4 text-amber-400" /> Sell Material
             </Link>
             <Link
               to="/register-vendor"
               onClick={() => setOpen(false)}
-              className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+              className="rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-white/10 transition-colors"
             >
               🏭 {t("listBusiness")}
             </Link>
             <Link
               to="/requirements"
               onClick={() => setOpen(false)}
-              className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+              className="rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-white/10 transition-colors"
             >
               {t("requirements")}
             </Link>
@@ -235,7 +247,7 @@ export function Navbar() {
               <Link
                 to="/customer-dashboard"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-white/10 transition-colors"
               >
                 <ShoppingCart className="h-4 w-4" /> My Orders &amp; Dashboard
               </Link>
@@ -244,7 +256,7 @@ export function Navbar() {
               <Link
                 to="/dashboard"
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+                className="rounded-xl px-3 py-2 text-sm font-medium text-foreground hover:bg-white/10 transition-colors"
               >
                 🏭 Vendor Dashboard
               </Link>
@@ -253,7 +265,7 @@ export function Navbar() {
             <div className="flex items-center gap-2 pt-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold uppercase">
+                  <button className="glass-btn rounded-lg border border-white/20 px-3 py-1.5 text-xs font-semibold uppercase text-foreground">
                     {lang === "en" ? "EN" : lang === "kn" ? "ಕನ್ನಡ" : lang === "hi" ? "हिंदी" : "मराठी"}
                   </button>
                 </DropdownMenuTrigger>
