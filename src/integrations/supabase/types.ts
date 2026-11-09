@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.15"
   }
   public: {
     Tables: {
@@ -827,7 +827,6 @@ export type Database = {
           quote_count: number
           status: Database["public"]["Enums"]["requirement_status"]
           title: string
-          city: string
           zone_preference: string | null
         }
         Insert: {
@@ -845,7 +844,6 @@ export type Database = {
           quote_count?: number
           status?: Database["public"]["Enums"]["requirement_status"]
           title: string
-          city?: string
           zone_preference?: string | null
         }
         Update: {
@@ -863,7 +861,6 @@ export type Database = {
           quote_count?: number
           status?: Database["public"]["Enums"]["requirement_status"]
           title?: string
-          city?: string
           zone_preference?: string | null
         }
         Relationships: [
@@ -879,48 +876,6 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      requirement_matches: {
-        Row: {
-          id: string
-          requirement_id: string
-          vendor_id: string
-          match_score: number
-          seen_at: string | null
-          notified_at: string
-        }
-        Insert: {
-          id?: string
-          requirement_id: string
-          vendor_id: string
-          match_score?: number
-          seen_at?: string | null
-          notified_at?: string
-        }
-        Update: {
-          id?: string
-          requirement_id?: string
-          vendor_id?: string
-          match_score?: number
-          seen_at?: string | null
-          notified_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "requirement_matches_requirement_id_fkey"
-            columns: ["requirement_id"]
-            isOneToOne: false
-            referencedRelation: "requirements"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "requirement_matches_vendor_id_fkey"
-            columns: ["vendor_id"]
-            isOneToOne: false
-            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -1175,8 +1130,7 @@ export type Database = {
           whatsapp: string | null
           whatsapp_clicks: number
           working_hours: Json | null
-          city: string
-          zone: string | null
+          zone: Database["public"]["Enums"]["belagavi_zone"] | null
         }
         Insert: {
           business_name: string
@@ -1210,8 +1164,7 @@ export type Database = {
           whatsapp?: string | null
           whatsapp_clicks?: number
           working_hours?: Json | null
-          city?: string
-          zone?: string | null
+          zone?: Database["public"]["Enums"]["belagavi_zone"] | null
         }
         Update: {
           business_name?: string
@@ -1245,8 +1198,7 @@ export type Database = {
           whatsapp?: string | null
           whatsapp_clicks?: number
           working_hours?: Json | null
-          city?: string
-          zone?: string | null
+          zone?: Database["public"]["Enums"]["belagavi_zone"] | null
         }
         Relationships: [
           {
@@ -1388,6 +1340,15 @@ export type Database = {
         | "quote_sent"
         | "saved"
       app_role: "customer" | "vendor" | "admin"
+      belagavi_zone:
+        | "Udyambag"
+        | "Auto Nagar"
+        | "Machhe KIADB"
+        | "Gokul Road"
+        | "Khanapur Road"
+        | "Bogarves"
+        | "Shahapur"
+        | "Other"
       enquiry_channel: "whatsapp" | "call" | "form" | "email"
       enquiry_status: "new" | "read" | "responded" | "closed"
       payment_status: "pending" | "success" | "failed" | "refunded"
@@ -1408,12 +1369,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1437,11 +1398,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1462,11 +1423,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1487,11 +1448,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1504,11 +1465,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1536,6 +1497,16 @@ export const Constants = {
         "saved",
       ],
       app_role: ["customer", "vendor", "admin"],
+      belagavi_zone: [
+        "Udyambag",
+        "Auto Nagar",
+        "Machhe KIADB",
+        "Gokul Road",
+        "Khanapur Road",
+        "Bogarves",
+        "Shahapur",
+        "Other",
+      ],
       enquiry_channel: ["whatsapp", "call", "form", "email"],
       enquiry_status: ["new", "read", "responded", "closed"],
       payment_status: ["pending", "success", "failed", "refunded"],
